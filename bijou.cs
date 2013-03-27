@@ -4,10 +4,14 @@ using System.Text;
 
 public class Bijou { 
 
-	public static bool _Debug = true;
+	public static bool Debug = true;
+	public static string Folder = ".";
 
 	public static void CreateFolder(string folder){
-		if(!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+		if(!Directory.Exists(folder)) {
+			if (Debug) Console.WriteLine("Creating "+folder);			
+			Directory.CreateDirectory(folder);
+		}
 	}
 
 	public static string StripPrefix(string text, char separator) {
@@ -27,7 +31,6 @@ public class Bijou {
 		if (!string.IsNullOrEmpty(text)) {
 			StringBuilder sb = new StringBuilder();
 			foreach(char c in text) {
-
 				if (char.IsUpper(c) && (sb.Length > 0)) sb.Append(" ");
 				sb.Append(c);
 			}
@@ -37,9 +40,9 @@ public class Bijou {
 	}
 
 	public static void CreateScafolding(){
-		CreateFolder("content");
-		CreateFolder("template");
-		CreateFolder("site");
+		CreateFolder(Folder+"/content");
+		CreateFolder(Folder+"/template");
+		CreateFolder(Folder+"/site");
 		/* CreateTemplateHeader();
 		CreateTemplateFooter();
 		CreateTemplateHeader();*/
@@ -59,7 +62,7 @@ public class Bijou {
 		foreach(DirectoryInfo di in folder.GetDirectories()) {
 			string stripped = StripPrefix(di.Name, '.');
 			string displayName = ParseDisplayName(stripped); 
-			if (_Debug) Console.WriteLine("Processing "+ stripped);
+			if (Debug) Console.WriteLine("Processing "+ stripped);
 			nav.Append("<li>");
 			nav.AppendFormat("<a href='{0}'>{1}</a>", stripped, displayName);
 			nav.Append("</li>");
@@ -68,7 +71,7 @@ public class Bijou {
 
 		foreach(FileInfo fi in folder.GetFiles("*.html")) {
 			string stripped = fi.Name; // filename.Replace(contentFolder+"/","");
-			if (_Debug) Console.WriteLine("Processing "+stripped);
+			//if (Debug) Console.WriteLine("Processing "+stripped);
 
 			string templateFile = "template/"+stripped;
 			string siteFile = siteFolder + "/index.html";
@@ -89,31 +92,42 @@ public class Bijou {
 	}
 
 	public static void CreateSite() {
-		ProcessFolder("content", "site");
+		ProcessFolder(Folder+"/content", Folder+"/site");
 	}
 
 
 	public static void Usage(bool detailed) {
 		Console.WriteLine("bijou [option]");
 		Console.WriteLine("  -i to initialize the folder structure");
-		Console.WriteLine("  -b to to build up the html files");
+		Console.WriteLine("  -i to initialize the folder structure");
 		if (detailed) {
 			Console.WriteLine("bijou walks through the content folder and creates the html files based on the given template.");
 
 		}
 	}
 
-	public static void Main(string[] args){
-		if (args.Length == 0) {
-			Usage(false);
-		} else if (args[0] == "-h") {
-			Usage(true);
-		} else if (args[0] == "-i") {
-			CreateScafolding();
-		} else if (args[0] == "-b") {
+	public static void Main(string[] args) {
+	    try {
+	    	bool createScafolding = false;
+            foreach (string arg in args) {
+                if (arg.StartsWith("-")) {
+					if (args[0] == "-h") {
+						Usage(true);
+					} else if (args[0] == "-i") {
+						createScafolding = true;
+					} else {
+						Console.WriteLine(string.Format("'{0}' option is not supported. Please use -h for help.", args[0] ));
+					}
+                } else {
+                	Bijou.Folder = arg;
+                }
+            }
+
+			if (createScafolding) CreateScafolding();
 			CreateSite();
-		} else {
-			Console.WriteLine(string.Format("'{0}' option is not supported. Please use -h for help.", args[0] ));
-		}
+
+		} catch (Exception e) {
+		    Console.WriteLine(e.ToString());
+        }
 	}
 }
