@@ -1,11 +1,21 @@
 using System; 
 using System.IO;
 using System.Text;
+using System.Xml;
+using System.Xml.Xsl;
 
+/**************************************************
+ * <summary>
+ * Man-O-Man... all static methods... this is not
+ * meant for public viewing... ha! well... 
+ * </summary>
+ *************************************************/
 public class Bijou { 
 
 	public static bool Debug = true;
 	public static string Folder = ".";
+	public static string TopNav = "";
+	public static string Breadcrumb = "";
 
 	public static void CreateFolder(string folder){
 		if(!Directory.Exists(folder)) {
@@ -48,37 +58,123 @@ public class Bijou {
 		CreateTemplateHeader();*/
 	}
 
-	private static void WriteFile(string filename, string template, string content, string topnav) {
+	private static void WriteFile(string filename, string template, string content) {
+
 		using (StreamWriter sw = File.CreateText(filename)) {
-	        sw.WriteLine(template.Replace("{content}", content).Replace("{topnav}", topnav));
+			string text = "";
+			text = template.Replace("{content}", content);
+			text = text.Replace("{topnav}", TopNav);
+			text = text.Replace("{breadcrumb}", Breadcrumb);
+	        sw.WriteLine(text);
 	    }
 	} 
 
-	public static void ProcessFolder(string contentFolder, string siteFolder) {
+	private static bool IsNavigation(string folder) {
+		return folder.Contains(".");
+	} 
+
+	private static bool IsTemplateDriven(string filename) {
+		filename = filename.Replace(".xml", ".xslt"); // The only one that changes name
+		return File.Exists("template/"+filename);
+	} 
+
+	private static string BuildTopNav(string contentFolder, string siteFolder) {
 		DirectoryInfo folder = new DirectoryInfo(contentFolder); 
 
 		StringBuilder nav = new StringBuilder();
 		nav.Append("<ul>");
 		foreach(DirectoryInfo di in folder.GetDirectories()) {
-			string stripped = StripPrefix(di.Name, '.');
-			string displayName = ParseDisplayName(stripped); 
-			if (Debug) Console.WriteLine("Processing "+ stripped);
-			nav.Append("<li>");
-			nav.AppendFormat("<a href='{0}'>{1}</a>", stripped, displayName);
-			nav.Append("</li>");
+			if (IsNavigation(di.Name)){
+				string stripped = StripPrefix(di.Name, '.');
+				string displayName = ParseDisplayName(stripped); 
+				if (Debug) Console.WriteLine("Processing "+ stripped);
+				nav.Append("<li>");
+				nav.AppendFormat("<a href='/{0}'>{1}</a>", stripped, displayName);
+				nav.Append("</li>");
+			}
 		}
 		nav.Append("</ul>");
+		return (nav.ToString());
+	}
 
-		foreach(FileInfo fi in folder.GetFiles("*.html")) {
-			string stripped = fi.Name; // filename.Replace(contentFolder+"/","");
-			//if (Debug) Console.WriteLine("Processing "+stripped);
 
-			string templateFile = "template/"+stripped;
-			string siteFile = siteFolder + "/index.html";
-			if (File.Exists(templateFile)) {
-				string template = File.ReadAllText(templateFile);
-				string content = File.ReadAllText(contentFolder + "/" + stripped);
-				WriteFile(siteFile, template, content, nav.ToString());
+	private static void ProcessHtmlFile(string contentFolder, string siteFolder, string filename) {
+		string contentFile = contentFolder + "/" + filename;
+		string templateFile = "template/" + filename;
+		string siteFile = siteFolder + "/index.html";
+		string template = File.ReadAllText(templateFile);
+		string content = File.ReadAllText(contentFile);
+		WriteFile(siteFile, template, content);
+	}
+
+	private static void ProcessXmlFile(string contentFolder, string siteFolder, string filename) {
+		string contentFile = contentFolder + "/" + filename;
+		string templateFile = "template/" + filename.Replace(".xml", ".xslt");
+		string siteFile = siteFolder + "/index.html";
+
+		XsltArgumentList xslArg = new XsltArgumentList();
+        xslArg.AddParam("topnav", "", TopNav);
+        xslArg.AddParam("breadcrumb", "", Breadcrumb);
+
+        // XslTransform xslt = new XslTransform();
+        // xslt.Load(templateFile); 
+        // xslt.Transform(contentFile, xslArg, siteFile); 
+        XslCompiledTransform xslt = new XslCompiledTransform();
+        xslt.Load(templateFile); 
+        using (XmlWriter writer = XmlWriter.Create(siteFile)) {
+            xslt.Transform(contentFile, xslArg, writer);
+        }
+
+	}
+
+	private static void ProcessCsvFile(string contentFolder, string siteFolder, string filename) {
+	    StringBuilder sb = new StringBuilder();
+		using (StreamReader sr = new StreamReader(contentFolder + "/" + filename)) {
+		    string line;
+		    string tag = "th";
+	    	sb.Append("<table>");
+		    while ((line = sr.ReadLine()) != null) {
+		    	if (line.StartsWith("#")) {
+			    	sb.AppendFormat("<caption>{0}</caption>", line.Replace("#", "").Trim());
+		    	} else {
+			    	string[] tokens = line.Split(',');
+			    	sb.Append("<tr>");
+			    	for (int i =0 ; i< tokens.Length; i++){
+				    	sb.AppendFormat("<{0}>{1}</{0}>", tag, tokens[i]);
+			    	}
+
+			    	sb.Append("</tr>");
+			    	tag = "td";
+			    }
+		    }
+	    	sb.Append("</table>");
+		}
+		string content = sb.ToString();
+		string templateFile = "template/" + filename;
+		string siteFile = siteFolder + "/index.html";
+		string template = File.ReadAllText(templateFile);
+		WriteFile(siteFile, template, content);
+	}
+
+
+	private static void ProcessFolder(string contentFolder, string siteFolder) {
+		DirectoryInfo folder = new DirectoryInfo(contentFolder); 
+
+		foreach(FileInfo fi in folder.GetFiles("*")) {
+			if (IsTemplateDriven(fi.Name)) {
+				if (Debug) Console.WriteLine("Processing "+ fi.Extension + " " + fi.Name);			
+				if (fi.Extension == ".html") {
+					ProcessHtmlFile(contentFolder, siteFolder, fi.Name);
+				} else if (fi.Extension == ".xml") {
+					ProcessXmlFile(contentFolder, siteFolder, fi.Name);					
+				} else if (fi.Extension == ".csv") {
+					ProcessCsvFile(contentFolder, siteFolder, fi.Name);					
+				}
+			} else {
+				string contentFile = contentFolder + "/" + fi.Name;
+				string siteFile = siteFolder + "/" + fi.Name;
+
+				File.Copy(contentFile, siteFile, true);
 			}
 	    }
 		foreach(DirectoryInfo di in folder.GetDirectories()) {
@@ -92,6 +188,7 @@ public class Bijou {
 	}
 
 	public static void CreateSite() {
+		TopNav = BuildTopNav(Folder+"/content", Folder+"/site");
 		ProcessFolder(Folder+"/content", Folder+"/site");
 	}
 
