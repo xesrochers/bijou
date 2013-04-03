@@ -15,6 +15,7 @@ public class Bijou {
 	public static bool Debug = false;
 	public static bool Index = false;
 	public static bool Verbose = false;
+	public static bool Home = false;
 	public static string Folder = ".";
 	public static string TopNav = "";
 	public static string Breadcrumb = "";
@@ -81,27 +82,37 @@ public class Bijou {
 		return File.Exists("template/"+filename);
 	} 
 
-	private static string BuildTopNav(string contentFolder, string siteFolder) {
-		DirectoryInfo folder = new DirectoryInfo(contentFolder); 
+	private static void BuildTopNav(StringBuilder nav, string contentFolder, string path, string strippedPath) {
+		DirectoryInfo folder = new DirectoryInfo(contentFolder + "/" + path); 
 
-		StringBuilder nav = new StringBuilder();
 		nav.Append("<ul>");
+		if (path=="" && Home) {
+			nav.Append("<li><a href='/' class='icon-home'>Home</a></li>");
+		}
 		foreach(DirectoryInfo di in folder.GetDirectories()) {
+
 			if (IsNavigation(di.Name)){
 				string stripped = StripPrefix(di.Name, '.');
 				string displayName = ParseDisplayName(stripped); 
 				if (Verbose) Console.WriteLine("Processing "+ stripped);
+				if (Debug) Console.WriteLine("Processing "+ path + "/" + di.Name);
 				nav.Append("<li>");
 				if (Index) {
-					nav.AppendFormat("<a href='{0}/index.html'>{1}</a>", stripped, displayName);
+					nav.AppendFormat("<a href='{0}/{1}/index.html'>{2}</a>", strippedPath, stripped, displayName);
 				} else {
-					nav.AppendFormat("<a href='/{0}'>{1}</a>", stripped, displayName);
+					nav.AppendFormat("<a href='{0}/{1}'>{2}</a>", strippedPath, stripped, displayName);
+				}
+
+				// Check if we have children
+				DirectoryInfo children = new DirectoryInfo(contentFolder+"/"+ path + "/" + di.Name);
+				if ((children !=null) && (children.GetDirectories().Length > 0)) {
+					BuildTopNav(nav, contentFolder, path+"/"+di.Name, path+"/"+stripped);
 				}
 				nav.Append("</li>");
 			}
 		}
 		nav.Append("</ul>");
-		return (nav.ToString());
+		// return (nav.ToString());
 	}
 
 
@@ -342,8 +353,13 @@ public class Bijou {
 
 	public static void CreateSite() {
 		string siteFolder = (SiteFolder == "/site") ? Folder+"/site" : SiteFolder;
+		StringBuilder nav = new StringBuilder();
+
 		CreateFolder(siteFolder);
-		TopNav = BuildTopNav(Folder+"/content", siteFolder);
+		BuildTopNav(nav, Folder+"/content", "", "");
+
+		TopNav = nav.ToString();
+
 		ProcessFolder(Folder+"/content", siteFolder);
 	}
 
@@ -353,6 +369,7 @@ public class Bijou {
 		Console.WriteLine("  -v verbose");
 		Console.WriteLine("  -d debug");
 		Console.WriteLine("  -i to activate index.html based urls");
+		Console.WriteLine("  -m to inject the home icon");
 		Console.WriteLine("  -o:path to change the output folder");
 		if (detailed) {
 			Console.WriteLine("bijou walks through the content folder and creates the html files based on the given template.");
@@ -373,6 +390,8 @@ public class Bijou {
 						Bijou.Debug = true;
 					} else if (arg == "-i") {
 						Bijou.Index = true;
+					} else if (arg == "-m") {
+						Bijou.Home = true;
 					} else if (arg == "-s") {
 						scalfolding = true;
 					} else if (arg.StartsWith("-o")) {
