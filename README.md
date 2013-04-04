@@ -18,12 +18,12 @@ How to use it
 -------------
 Well, it's pretty simple. Simply run bijou.exe at the root of a folder that contains:
 
-  content/ 
-  		a folder hiearchy with various content files
-  templates/
-  		a folder with processing templates
-  site/
-  		a destination folder where the processed files are written
+ - content/ 
+  		(a folder hiearchy with various content files)
+ - templates/
+  		(a folder with processing templates)
+ - site/
+  		(a destination folder where the processed files are written)
 
 Inspiration
 -----------
