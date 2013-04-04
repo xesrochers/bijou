@@ -1,0 +1,6 @@
+# Known Bugs (from a CSV template)
+ID,Area,Details
+01,Templates,Markdown template engine (well we can't really call what I have an engine)
+02,Option, Fix up the -i option (for running the site without a web server)
+03,CSS, Fix the suckerfish menu system for IE
+04,BIJOU,Clear out the site/ folder (as we are leaving junk folder names when renaming them in the content folder.)

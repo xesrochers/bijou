@@ -87,7 +87,7 @@ public class Bijou {
 
 		nav.Append("<ul>");
 		if (path=="" && Home) {
-			nav.Append("<li><a href='/' class='icon-home'>Home</a></li>");
+			nav.Append("<li><a href='/' class='icon-home'></a></li>");
 		}
 		foreach(DirectoryInfo di in folder.GetDirectories()) {
 

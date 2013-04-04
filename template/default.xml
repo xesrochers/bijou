@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:output method="html" indent="yes" />
+
+<xsl:param name="topnav" />
+<xsl:param name="breadcrumb" />
+
+<xsl:template match="/">
+<html>
+	<head>
+        <link href='/styles/font-awesome.css' rel='stylesheet' />		
+        <link href='/styles/style.css' rel='stylesheet' />		
+	</head>
+	<body>
+		<div id='wrapper'>
+			<header>
+				<a href='/'><img src='/images/logo.svg' alt='logo' /></a>
+			</header>	
+			<nav id='topnav' class='inline'>
+				<xsl:value-of select="$topnav" disable-output-escaping="yes"/>
+			</nav>
+			<nav id='breadcrumb'>
+				<xsl:value-of select="$breadcrumb" disable-output-escaping="yes"/>
+			</nav>
+			<div id='content'>
+				<h1><xsl:value-of select="/tasks/@title"/></h1>
+
+			    <xsl:for-each select="/tasks/task">
+				    <dl>
+				      <dt><xsl:value-of select="@title"/></dt>
+				      <dd><xsl:value-of select="text()"/></dd>
+				    </dl>
+			    </xsl:for-each>
+
+			</div>
+			<footer>
+				<p>Powered by bijou!</p>
+			</footer>
+		</div>
+		<script src='http://code.jquery.com/jquery-latest.js'></script>
+		<script src='/scripts/jquery.ready.js' type='text/javascript' ></script>
+
+	</body>
+</html>
+</xsl:template>
+</xsl:stylesheet>
+
+

@@ -1,0 +1,115 @@
+/* Eric Meyer's Reset CSS v2.0 - http://cssreset.com */
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video{border:0;font-size:100%;font:inherit;vertical-align:baseline;margin:0;padding:0}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body{line-height:1}ol,blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:none}table{border-collapse:collapse;border-spacing:0}
+
+@font-face {
+  font-family: 'fontawesome';
+  src: url('fontawesome-webfont.ttf');
+}
+
+.fontawesome {
+	font-family: fontawesome;
+}
+
+html {background-color: #222; color: #eee;}
+body {background-color: #333}
+div#wrapper{width: 90%; max-width: 960px; margin: 0 auto 5em auto; }
+header{padding-top: 2em;}
+header h1 a {text-decoration: none; }
+header h1 { margin-bottom: 0;}
+
+div#content{ min-height: 400px;}
+
+footer{ padding: 1em; font-style: italic; text-align: right;}
+
+h1 {font-size: 2.5em; padding-bottom: .4em; }
+h2 {font-size: 2.2em; padding: .4em 0; }
+h3 {font-size: 2.0em; padding: .4em 0; }
+
+p {margin: .3em 0 1em 0;}
+a {text-decoration: underline; color: #eee;}
+a:hover {color: #fff;}
+ul { margin: 1em 0; }
+legend {font-size: 2em; margin-bottom: .5em}
+form { padding-bottom: 1em; }
+form .properties label { float: left; width: 8em; }
+form .methods span {width: 8em;}
+form .methods input:before { contents:'<span>&nbsp</span>';}
+ul { margin-left: 2em;list-style-type: circle;}
+ol {margin-left: 2em;}
+
+.box {border: 1px solid #eee; margin: 1em 0; padding: 0 1em; border-radius: 6px;}
+
+nav { width: 100%;}
+nav ul {list-style: none; margin-left: 0; display: block; float: left; background-color: #222; border: 1px solid #eee; width: 100%;}
+nav ul li {float: left; margin-left: 1em; position: relative; DDDmin-width: 5em; padding-right: 1em;}
+nav ul li a {display: block; padding: 1em .5em; text-decoration: none }
+nav ul li:hover {background-color: #555}
+nav ul li ul {  display: none;  position: absolute; top: 2em;  left: 0; }
+nav li > ul { top: auto; left: auto;  background-color: #555; border: none;}
+nav li > ul li { margin-left: 0; padding-right: 0; border-top: 1px solid #444; width: 100%;}
+nav li > ul li a {padding-left: 1em; padding-bottom: .5em; padding-top: .8em; font-size: .8em; font-style: italic; color: #ddd;}
+nav li > ul li a:hover {background-color: #777;}
+nav li:hover ul { display: block;}
+nav .icon-home { width: 10px;}
+
+#breadcrumb { clear: left; width: 100%;}
+
+ul.bullet ul {
+	margin-top: 0;
+}
+
+table {
+	margin: .5em 0;
+	width: 100%;
+}
+
+table caption {
+	font-size: 2em;
+	padding: .5em 0;
+	text-align: left;
+}
+
+table th  {
+	font-weight: bold;
+	font-size: 1.1em;
+	padding: .5em;
+	background-color: #000;
+}
+
+table th, table td  {
+	text-align: left;
+	padding: .2em;
+}
+
+table tr:nth-child(odd) {
+	background-color: #444;
+}
+
+table tr:nth-child(even) {
+	background-color: #666;
+}
+
+dl {
+	padding: .5em 0;
+}
+
+dt {
+	font-size: 1.4em;
+}
+
+dd {
+	margin-top: .5em;
+	margin-left: 1em;
+	font-style: italic;
+}
+
+
+
+.old {
+ text-decoration:line-through;
+}
+
+.hidden {
+	display: none;	
+}
+
