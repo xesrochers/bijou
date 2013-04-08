@@ -78,7 +78,6 @@ public class Bijou {
 	} 
 
 	private static bool IsTemplateDriven(string filename) {
-		//filename = filename.Replace(".xml", ".xslt"); // The only one that changes name
 		return File.Exists("template/"+filename);
 	} 
 
@@ -331,7 +330,7 @@ public class Bijou {
 					ProcessXmlFile(contentFolder, siteFolder, fi.Name);					
 				} else if (fi.Extension == ".csv") {
 					ProcessCsvFile(contentFolder, siteFolder, fi.Name);					
-				} else if (fi.Extension == ".txt") {
+				} else if (fi.Extension == ".md") {
 					ProcessMarkdownFile(contentFolder, siteFolder, fi.Name);					
 				}
 			} else {
