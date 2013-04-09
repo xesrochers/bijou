@@ -9,7 +9,7 @@
 <html>
 	<head>
         <link href='/styles/font-awesome.css' rel='stylesheet' />		
-		<link href="/styles/superfish.css" rel="stylesheet"  media="screen" />
+		<link href='/styles/superfish.css' rel='stylesheet' />
         <link href='/styles/style.css' rel='stylesheet' />		
 	</head>
 	<body>

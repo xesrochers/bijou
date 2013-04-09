@@ -103,13 +103,15 @@ dd {
 	font-style: italic;
 }
 
-
-
 .old {
  text-decoration:line-through;
 }
 
 .hidden {
 	display: none;	
+}
+
+.htest b.selected {
+	color: orange;
 }
 
