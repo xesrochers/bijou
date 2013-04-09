@@ -3,12 +3,15 @@
  *********************************************************/
 
 $(document).ready(function() {
-    
-    $('.ajax').click(function(e) {
+
+    $('#topnav > ul').addClass('sf-menu').superfish();
+
+    /*$('.ajax').click(function(e) {
         var href = $(this).attr('href');
         e.preventDefault();
         $('#contents').load(href);
-    });
+    });*/
+
 
     /*$('.ajaxLoaded').live(function() {
         alert('hahaha');

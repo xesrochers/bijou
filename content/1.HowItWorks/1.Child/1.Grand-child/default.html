@@ -1,0 +1,38 @@
+<div id="install">
+	<h1>How It Works</h1>
+    <p>Well, it's pretty simple. Running bijou.exe simply recursively reads the content/ folder applies matching files from the templates/ folder and wries out the result in the site/ folder</p>
+    <ul class='bullet'>
+      <li>content/
+      	<ul>
+      		<li>1.Menu1/  - Folders prefixed with numbers create the navigation hierarchy
+      			<ul><li>default.html - Filename that matches a template file and contains the body or data elements. </li></ul>
+      		</li>
+      		<li>2.Menu2/  - Ditto
+      			<ul><li>default.html - Ditto </li></ul>
+      		</li>
+      		<li>images/  - Folders NOT prefixed with numbers are simply copied (and not processed via templates).
+      			<ul><li>(ex: logo.png) - Files are simply copied.</li></ul>
+      		</li>
+      		<li>scripts/  - Ditto.
+      			<ul><li>(ex: main.js) - Ditto</li></ul>
+      		</li>
+      		<li>styles/  - Ditto.
+      			<ul><li>(ex: styles.css) - Ditto</li></ul>
+      		</li>
+      	</ul>
+      </li>
+      <li>templates/
+      	<ul>
+      		<li>default.html  - HTML type template (simple substitution of body content)</li>
+      		<li>default.csv   - CSV type template (converts the CSV file to a table)</li>
+      		<li>default.xml   - XML type template (applies a XSLT template)</li>
+      		<li>default.txt   - Markdown type template (not implemented to Markdown specifications quite yet)</li>
+      	</ul>
+      </li>
+      <li>site/
+      	<ul>
+      		<li>The end result. This is where your static HTML site is created.</li>
+      	</ul>
+      </li>
+    </ul>
+</div>
