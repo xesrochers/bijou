@@ -20,7 +20,7 @@ public class Bijou {
 	public static string TopNav = "";
 	public static string Breadcrumb = "";
 	public static string SiteFolder = "/site";
-	public static string WebRoot = "/";
+	public static string WebRoot = "";
 	public static string Children = "";
 	private static int Level = 0;
 
@@ -102,28 +102,63 @@ public class Bijou {
 		return File.Exists("template/"+filename);
 	} 
 
+	private static void BuildLink(StringBuilder stream, string currentPath, DirectoryInfo di) {
+		string stripped = StripPrefix(di.Name, '.');
+		string displayName = ParseDisplayName(stripped); 
+		string strippedPath = StripPrefix(currentPath);
+		if (Index) {
+			stream.AppendFormat("<a href='{0}/index.html'>{1}</a>", strippedPath, displayName);
+		} else if (WebRoot == "") {
+			stream.AppendFormat("<a href='{0}'>{1}</a>", strippedPath, displayName);
+		} else {
+			stream.AppendFormat("<a href='{0}/{1}'>{2}</a>", WebRoot, strippedPath, displayName);					
+		}
+	}
+
+	private static string BuildChildLinks(DirectoryInfo folder) {
+		StringBuilder result = new StringBuilder();
+		DirectoryInfo[] children = folder.GetDirectories();
+		if ((children !=null) && (children.Length > 0)) {
+			result.Append("<ul>");
+			foreach(DirectoryInfo di in children) {
+				if (IsNavigation(di.Name)){
+					string currentPath =  folder.Name + "/" + di.Name;
+
+					//string stripped = StripPrefix(di.Name, '.');
+					//string displayName = ParseDisplayName(stripped); 
+					//string strippedPath = StripPrefix(currentPath);
+					if (Debug) Console.WriteLine("BuildChildLinks "+ currentPath);
+					result.Append("<li>");
+					BuildLink(result, currentPath, di);
+					/*if (Index) {
+						result.AppendFormat("<a href='{0}/index.html'>{1}</a>", strippedPath, displayName);
+					} else {
+						result.AppendFormat("<a href='{0}'>{1}</a>", strippedPath, displayName);
+					}*/
+					result.Append("</li>");
+				}
+			}
+			result.Append("</ul>");
+		}
+		return result.ToString();
+	}
+
 	private static void BuildTopNav(StringBuilder nav, string contentFolder, string path) {
 		DirectoryInfo folder = new DirectoryInfo(contentFolder + "/" + path); 
 
 		nav.Append("<ul>");
 		if (path=="" && Home) {
-			nav.Append("<li><a href='/' class='icon-home'></a></li>");
+			nav.AppendFormat("<li><a href='{0}' class='icon-home'></a></li>", WebRoot);
 		}
 
 		foreach(DirectoryInfo di in folder.GetDirectories()) {
 
 			if (IsNavigation(di.Name)){
 				string currentPath =  path + "/" + di.Name;
-				string stripped = StripPrefix(di.Name, '.');
-				string displayName = ParseDisplayName(stripped); 
-				string strippedPath = StripPrefix(currentPath);
 				if (Debug) Console.WriteLine("BuildTopNav "+ currentPath);
 				nav.Append("<li>");
-				if (Index) {
-					nav.AppendFormat("<a href='{0}/index.html'>{1}</a>", strippedPath, displayName);
-				} else {
-					nav.AppendFormat("<a href='{0}'>{1}</a>", strippedPath, displayName);
-				}
+
+				BuildLink(nav, currentPath, di);
 
 				// Check if we have children
 				DirectoryInfo children = new DirectoryInfo(contentFolder+"/"+ path + "/" + di.Name);
@@ -155,8 +190,10 @@ public class Bijou {
 		string siteFile = siteFolder + "/index.html";
 
 		XsltArgumentList xslArg = new XsltArgumentList();
+        xslArg.AddParam("root", "", WebRoot);
         xslArg.AddParam("topnav", "", TopNav);
         xslArg.AddParam("breadcrumb", "", Breadcrumb);
+        xslArg.AddParam("children", "", Children);
 
         XslCompiledTransform xslt = new XslCompiledTransform();
         xslt.Load(templateFile); 
@@ -343,32 +380,6 @@ public class Bijou {
 		WriteFile(siteFile, template, content);
 	}
 
-	private static string BuildChildLinks(DirectoryInfo folder) {
-		StringBuilder result = new StringBuilder();
-		DirectoryInfo[] children = folder.GetDirectories();
-		if ((children !=null) && (children.Length > 0)) {
-			result.Append("<ul>");
-			foreach(DirectoryInfo di in children) {
-				if (IsNavigation(di.Name)){
-					string currentPath =  folder.Name + "/" + di.Name;
-					string stripped = StripPrefix(di.Name, '.');
-					string displayName = ParseDisplayName(stripped); 
-					string strippedPath = StripPrefix(currentPath);
-					if (Debug) Console.WriteLine("BuildChildLinks "+ currentPath);
-					result.Append("<li>");
-					if (Index) {
-						result.AppendFormat("<a href='{0}/index.html'>{1}</a>", strippedPath, displayName);
-					} else {
-						result.AppendFormat("<a href='{0}'>{1}</a>", strippedPath, displayName);
-					}
-					result.Append("</li>");
-				}
-			}
-			result.Append("</ul>");
-		}
-		return result.ToString();
-	}
-
 	private static void ProcessFolder(string contentFolder, string siteFolder) {
 		DirectoryInfo folder = new DirectoryInfo(contentFolder); 
 
@@ -452,9 +463,20 @@ public class Bijou {
 					} else if (arg.StartsWith("-o")) {
 						string[] tokens = arg.Split(':');
 						if (tokens.Length == 2) {
-							Bijou.SiteFolder = tokens[1];
+							if (tokens[1] == "content" || tokens[1] == "template") {
+								Bijou.SiteFolder = tokens[1];
+							} else {
+								Console.WriteLine("Bijou Reserved Folder: Please specify a folder name that is not 'content' or 'template'.");
+							}
 						} else {
 							Console.WriteLine("Please specify folder name along with -o option (using -o:path format).");
+						}
+					} else if (arg.StartsWith("-r")) {
+						string[] tokens = arg.Split(':');
+						if (tokens.Length == 2) {
+							Bijou.WebRoot = "/" + tokens[1];
+						} else {
+							Console.WriteLine("Please specify folder name along with -r option (using -o:path format).");
 						}
 					} else {
 						Console.WriteLine(string.Format("'{0}' option is not supported. Please use -h for help.", args[0] ));
