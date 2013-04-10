@@ -42,14 +42,6 @@ Technologies:
 | Jane     | Smith    | 20       | Female   |
 |----------|----------|----------|----------|
 
-### Anchors &amp; Images
-
-[ny times]: http://www.nytimes.com/
-
-[home]: /
-
-![alt text]:/path/to/img.jpg
-
 ### Rules
 ---
 ***

@@ -28,6 +28,22 @@ public class Bijou {
 		}
 	}
 
+	public static string StripPrefix(string contentPath) {
+		StringBuilder result = new StringBuilder("/");
+		contentPath = contentPath.Replace("./content", "");
+		string[] tokens = contentPath.Split('/');
+		foreach (string item in tokens) {
+			if (!string.IsNullOrEmpty(item)) {
+				result.AppendFormat("{0}/", StripPrefix(item, '.'));
+			}
+		}
+		// result.Append("/");
+
+ 		if (Debug) Console.WriteLine("StripPath " + result);
+
+		return result.ToString();
+	}
+
 	public static string StripPrefix(string text, char separator) {
 		string result = text;
 		if (!string.IsNullOrEmpty(text)) {
@@ -81,31 +97,35 @@ public class Bijou {
 		return File.Exists("template/"+filename);
 	} 
 
-	private static void BuildTopNav(StringBuilder nav, string contentFolder, string path, string strippedPath) {
+	private static void BuildTopNav(StringBuilder nav, string contentFolder, string path) {
 		DirectoryInfo folder = new DirectoryInfo(contentFolder + "/" + path); 
 
 		nav.Append("<ul>");
 		if (path=="" && Home) {
 			nav.Append("<li><a href='/' class='icon-home'></a></li>");
 		}
+
 		foreach(DirectoryInfo di in folder.GetDirectories()) {
 
 			if (IsNavigation(di.Name)){
+				string currentPath =  path + "/" + di.Name;
 				string stripped = StripPrefix(di.Name, '.');
 				string displayName = ParseDisplayName(stripped); 
-				if (Verbose) Console.WriteLine("Processing "+ stripped);
-				if (Debug) Console.WriteLine("Processing "+ path + "/" + di.Name);
+				string strippedPath = StripPrefix(currentPath);
+				if (Debug) Console.WriteLine("BuildTopNav "+ currentPath);
 				nav.Append("<li>");
 				if (Index) {
-					nav.AppendFormat("<a href='{0}/{1}/index.html'>{2}</a>", strippedPath, stripped, displayName);
+					nav.AppendFormat("<a href='{0}/index.html'>{1}</a>", strippedPath, displayName);
 				} else {
-					nav.AppendFormat("<a href='{0}/{1}'>{2}</a>", strippedPath, stripped, displayName);
+					nav.AppendFormat("<a href='{0}'>{1}</a>", strippedPath, displayName);
 				}
 
 				// Check if we have children
 				DirectoryInfo children = new DirectoryInfo(contentFolder+"/"+ path + "/" + di.Name);
 				if ((children !=null) && (children.GetDirectories().Length > 0)) {
-					BuildTopNav(nav, contentFolder, path+"/"+di.Name, path+"/"+stripped);
+					string childPath = path + "/" + di.Name;
+					if (Debug) Console.WriteLine("BuildTopNav "+ childPath + " has children");	
+					BuildTopNav(nav, contentFolder, childPath);
 				}
 				nav.Append("</li>");
 			}
@@ -355,7 +375,7 @@ public class Bijou {
 		StringBuilder nav = new StringBuilder();
 
 		CreateFolder(siteFolder);
-		BuildTopNav(nav, Folder+"/content", "", "");
+		BuildTopNav(nav, Folder+"/content", "");
 
 		TopNav = nav.ToString();
 

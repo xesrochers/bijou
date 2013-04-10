@@ -111,7 +111,7 @@ dd {
 	display: none;	
 }
 
-.htest b.selected {
+#hierarchy b.current {
 	color: orange;
 }
 
