@@ -32,3 +32,5 @@ I have to thank Ben Schwarz at http://tinytree.info/ for Bonsai ( a PHP based ve
 License
 -------
 Well this is really experimental code. Use at your own risk.  Released under the MIT LICENSE. 
+
+Copyright (c) 2013 Sly Desrochers
