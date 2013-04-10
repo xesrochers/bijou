@@ -90,7 +90,7 @@ table tr:nth-child(even) {
 }
 
 dl {
-	padding: .5em 0;
+	padding: .5em 0 1em 0;
 }
 
 dt {
@@ -98,8 +98,7 @@ dt {
 }
 
 dd {
-	margin-top: .5em;
-	margin-left: 1em;
+	margin: .5em 1em;
 	font-style: italic;
 }
 

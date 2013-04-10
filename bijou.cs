@@ -20,6 +20,9 @@ public class Bijou {
 	public static string TopNav = "";
 	public static string Breadcrumb = "";
 	public static string SiteFolder = "/site";
+	public static string WebRoot = "/";
+	public static string Children = "";
+	private static int Level = 0;
 
 	public static void CreateFolder(string folder){
 		if(!Directory.Exists(folder)) {
@@ -85,6 +88,8 @@ public class Bijou {
 			text = template.Replace("{content}", content);
 			text = text.Replace("{topnav}", TopNav);
 			text = text.Replace("{breadcrumb}", Breadcrumb);
+			text = text.Replace("{children}", Children);
+			text = text.Replace("{root}", WebRoot);
 	        sw.WriteLine(text);
 	    }
 	} 
@@ -338,11 +343,40 @@ public class Bijou {
 		WriteFile(siteFile, template, content);
 	}
 
+	private static string BuildChildLinks(DirectoryInfo folder) {
+		StringBuilder result = new StringBuilder();
+		DirectoryInfo[] children = folder.GetDirectories();
+		if ((children !=null) && (children.Length > 0)) {
+			result.Append("<ul>");
+			foreach(DirectoryInfo di in children) {
+				if (IsNavigation(di.Name)){
+					string currentPath =  folder.Name + "/" + di.Name;
+					string stripped = StripPrefix(di.Name, '.');
+					string displayName = ParseDisplayName(stripped); 
+					string strippedPath = StripPrefix(currentPath);
+					if (Debug) Console.WriteLine("BuildChildLinks "+ currentPath);
+					result.Append("<li>");
+					if (Index) {
+						result.AppendFormat("<a href='{0}/index.html'>{1}</a>", strippedPath, displayName);
+					} else {
+						result.AppendFormat("<a href='{0}'>{1}</a>", strippedPath, displayName);
+					}
+					result.Append("</li>");
+				}
+			}
+			result.Append("</ul>");
+		}
+		return result.ToString();
+	}
+
 	private static void ProcessFolder(string contentFolder, string siteFolder) {
 		DirectoryInfo folder = new DirectoryInfo(contentFolder); 
 
 		foreach(FileInfo fi in folder.GetFiles("*")) {
 			if (IsTemplateDriven(fi.Name)) {
+
+				Children = BuildChildLinks(folder);
+
 				if (Verbose) Console.WriteLine("Processing "+ fi.Extension + " " + fi.Name);			
 				if (fi.Extension == ".html") {
 					ProcessHtmlFile(contentFolder, siteFolder, fi.Name);
@@ -385,11 +419,13 @@ public class Bijou {
 
 	public static void Usage(bool detailed) {
 		Console.WriteLine("bijou [option]");
-		Console.WriteLine("  -v verbose");
-		Console.WriteLine("  -d debug");
+		Console.WriteLine("  -c to clear out the existing 'site' folder");
 		Console.WriteLine("  -i to activate index.html based urls");
 		Console.WriteLine("  -m to inject the home icon");
 		Console.WriteLine("  -o:path to change the output folder");
+		Console.WriteLine("  -r:path to change the root folder");
+		Console.WriteLine("  -v verbose");
+		Console.WriteLine("  -d debug");
 		if (detailed) {
 			Console.WriteLine("bijou walks through the content folder and creates the html files based on the given template.");
 

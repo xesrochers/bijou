@@ -1,0 +1,17 @@
+<tasks title="XML Template Tests">
+	<task title='Node 1' priority='1'>
+		Node 1 details.
+	</task>
+	<task title='Node 2' priority='1'>
+		Node 2 details.
+	</task>
+	<task title='Node 3' priority='1'>
+		Node 3 details.
+	</task>
+	<task title='Node 4' priority='1'>
+		Node 4 details.
+	</task>
+	<task title='Node 5' priority='1'>
+		Node 5 details.
+	</task>
+</tasks>
