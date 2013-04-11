@@ -19,7 +19,7 @@
 				{content}
 			</div>
 			<footer>
-				<p>Powered by bijou!</p>
+				<p>Powered by <a href='https://github.com/xesroche/bijou' target='_blank'>bijou!</a></p>
 			</footer>
 		</div>
 		<script src="{root}/scripts/jquery-1.9.0.min.js"></script>
