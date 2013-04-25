@@ -85,11 +85,11 @@ public class Bijou {
 
 		using (StreamWriter sw = File.CreateText(filename)) {
 			string text = "";
-			text = template.Replace("{content}", content);
-			text = text.Replace("{topnav}", TopNav);
-			text = text.Replace("{breadcrumb}", Breadcrumb);
-			text = text.Replace("{children}", Children);
-			text = text.Replace("{root}", WebRoot);
+			text = template.Replace("{$content}", content);
+			text = text.Replace("{$topnav}", TopNav);
+			text = text.Replace("{$breadcrumb}", Breadcrumb);
+			text = text.Replace("{$children}", Children);
+			text = text.Replace("{$root}", WebRoot);
 	        sw.WriteLine(text);
 	    }
 	} 
