@@ -237,14 +237,6 @@ public class Bijou {
 		WriteFile(siteFile, template, content);
 	}
 
-
-  	/*
-  	  	<item>
-	      	<title>My First Article</title>
-	      	<pubDate>Tue, 03 Jun 2003 09:39:21 GMT</pubDate>
-	      	<description>It's my first article. Hello World!</description>
-    	</item>
-	*/
 	private const int RSS_START = 0;
 	private const int RSS_TITLE = 1;
 	private const int RSS_SKIP  = 2;
@@ -296,23 +288,6 @@ public class Bijou {
 		string content = sb.ToString();
 		WriteFile(siteFile, template, content);
 	}
-
-	/*
-	BEGIN:VEVENT
-DTSTART:20110331T230000Z
-DTEND:20110401T010000Z
-DTSTAMP:20130413T040110Z
-UID:CoachClinicsYouth01
-CREATED:19000101T120000Z
-DESCRIPTION:
-LAST-MODIFIED:20130413T034716Z
-LOCATION:Chelsea Community Center
-SEQUENCE:0
-STATUS:CONFIRMED
-SUMMARY:Formation jeunes entraîneurs - Session 1
-TRANSP:OPAQUE
-END:VEVENT
-*/
 
 	private const int ICS_START    = 0;
 	private const int ICS_TITLE    = 1;
