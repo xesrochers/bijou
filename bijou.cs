@@ -22,7 +22,7 @@ public class Bijou {
 	public static string SiteFolder = "/site";
 	public static string WebRoot = "";
 	public static string Children = "";
-	//private static int Level = 0;
+	// private static int Level = 0;
 
 	public static void CreateFolder(string folder){
 		if(!Directory.Exists(folder)) {
@@ -125,7 +125,7 @@ public class Bijou {
 		if ((children !=null) && (children.Length > 0)) {
 			result.Append("<ul>");
 			foreach(DirectoryInfo di in children) {
-				if (IsNavigation(di.Name)){
+				if (IsNavigation(di.Name)  && !IsInvisible(di.Name)){
 					string currentPath =  folder.Name + "/" + di.Name;
 
 					//string stripped = StripPrefix(di.Name, '.');
@@ -233,6 +233,186 @@ public class Bijou {
 		    }
 	    	sb.Append("</table>");
 		}
+		string content = sb.ToString();
+		WriteFile(siteFile, template, content);
+	}
+
+
+  	/*
+  	  	<item>
+	      	<title>My First Article</title>
+	      	<pubDate>Tue, 03 Jun 2003 09:39:21 GMT</pubDate>
+	      	<description>It's my first article. Hello World!</description>
+    	</item>
+	*/
+	private const int RSS_START = 0;
+	private const int RSS_TITLE = 1;
+	private const int RSS_SKIP  = 2;
+	private const int RSS_DATE  = 3;
+	private const int RSS_DESC  = 4;
+
+	private static void ProcessRssFile(string contentFolder, string siteFolder, string filename) {
+		string contentFile = contentFolder + "/" + filename;
+		string templateFile = "template/" + filename;
+		string siteFile = siteFolder + "/index.rss";
+		string template = File.ReadAllText(templateFile);
+	    StringBuilder sb = new StringBuilder();
+		using (StreamReader sr = new StreamReader(contentFile)) {
+		    string line;
+		    int state = RSS_START;
+		    while ((line = sr.ReadLine()) != null) {
+	    		switch (state) {
+	    			case RSS_START:
+				    	if (line.StartsWith("---")) {
+					    	sb.Append("<item>");
+					    	state = RSS_TITLE;
+					    }
+				    	break;
+	    			case RSS_TITLE:
+					    	sb.AppendFormat("<title>{0}</title>", line);
+					    	state = RSS_SKIP;
+				    	break;
+	    			case RSS_SKIP:
+					    	state = RSS_DATE;
+				    	break;
+	    			case RSS_DATE:
+					    	sb.AppendFormat("<pubDate>{0}</pubDate>\n<description>", line);
+					    	state = RSS_DESC;
+				    	break;
+	    			case RSS_DESC:
+				    	if (line.StartsWith("---")) {
+				    		sb.Append("</description>\n</item>\n<item>");
+				    		state = RSS_TITLE;
+				    	} else {
+					    	sb.Append(line);
+					    }
+				    	break;
+		    		
+		    	}
+		    }
+		}
+		if (sb.Length > 0) sb.Append("</description>\n</item>");
+
+		string content = sb.ToString();
+		WriteFile(siteFile, template, content);
+	}
+
+	/*
+	BEGIN:VEVENT
+DTSTART:20110331T230000Z
+DTEND:20110401T010000Z
+DTSTAMP:20130413T040110Z
+UID:CoachClinicsYouth01
+CREATED:19000101T120000Z
+DESCRIPTION:
+LAST-MODIFIED:20130413T034716Z
+LOCATION:Chelsea Community Center
+SEQUENCE:0
+STATUS:CONFIRMED
+SUMMARY:Formation jeunes entraîneurs - Session 1
+TRANSP:OPAQUE
+END:VEVENT
+*/
+
+	private const int ICS_START    = 0;
+	private const int ICS_TITLE    = 1;
+	private const int ICS_LOCATION = 2;
+	private const int ICS_DATE     = 3;
+	private const int ICS_ID       = 4;
+	private const int ICS_SKIP     = 5;
+	private const int ICS_DESC     = 6;
+
+	private static void StartIcsEvent(StringBuilder sb) {
+		DateTime now = DateTime.Now;
+		string date = string.Format("{0:yyyyMMdd}", now); // "20130413T034716"; // FIX THIS!
+		string time = string.Format("{0:hhmmss}", now); // "20130413T034716"; // FIX THIS!
+		sb.Append("BEGIN:VEVENT\n");
+		sb.Append("CREATED:19000101T120000Z\n");
+		sb.Append("SEQUENCE:0\n");
+		sb.Append("STATUS:CONFIRMED\n");
+		sb.AppendFormat("DTSTAMP:{0}T{1}Z\n", date,time);
+		sb.AppendFormat("LAST-MODIFIED:{0}T{1}Z\n", date,time);
+	}
+
+	private static void ProcessIcsFile(string contentFolder, string siteFolder, string filename) {
+		string contentFile = contentFolder + "/" + filename;
+		string templateFile = "template/" + filename;
+		string siteFile = siteFolder + "/index.ics";
+		string template = File.ReadAllText(templateFile);
+	    StringBuilder sb = new StringBuilder();
+		using (StreamReader sr = new StreamReader(contentFile)) {
+		    string line;
+		    int state = ICS_START;
+		    while ((line = sr.ReadLine()) != null) {
+	    		switch (state) {
+	    			case ICS_START:
+				    	if (line.StartsWith("---")) {
+				    		StartIcsEvent(sb);
+					    	state = RSS_TITLE;
+					    }
+				    	break;
+	    			case ICS_TITLE:
+					    	sb.AppendFormat("SUMMARY:{0}\n", line);
+					    	state = ICS_LOCATION;
+				    	break;
+	    			case ICS_LOCATION:
+					    	sb.AppendFormat("LOCATION:{0}\n", line);
+					    	state = ICS_DATE;
+				    	break;
+	    			case ICS_DATE:
+	    					if (line.Contains(":")) {
+	    						string[] date = line.Replace("(","").Replace(")","").Trim().Split(' ');
+	    						if (date.Length == 2) {
+		    						string[] time = date[1].Replace(":","").Split('-');
+		    						if (time.Length == 2) {
+								    	sb.AppendFormat("DTSTART:{0}T{1}00Z\n", date[0].Replace("/","").Trim(), time[0].Trim());
+								    	sb.AppendFormat("DTSTART:{0}T{1}00Z\n", date[0].Replace("/","").Trim(), time[1].Trim());
+								    }
+							    }
+								//DTSTART:20110331T230000Z
+								//DTEND:20110401T010000Z
+								//DTSTAMP:20130413T040110Z
+								
+	    					} else {
+	    						string[] date = line.Split('-');
+	    						if (date.Length == 2) {
+							    	sb.AppendFormat("DTSTART;VALUE=DATE:{0}\n", date[0].Replace("/","").Trim());
+							    	sb.AppendFormat("DTEND;VALUE=DATE:{0}\n", date[1].Replace("/","").Trim());
+							    }
+						    	//DTSTART;VALUE=DATE:20100913
+								//DTEND;VALUE=DATE:20101010
+	    					}
+					    	state = ICS_ID;
+				    	break;
+	    			case ICS_ID:
+					    	if (!line.StartsWith("---")) {
+					    		sb.AppendFormat("UID:{0}\n", line);
+					    		state = ICS_SKIP;
+				    		} else {
+						    	sb.Append("DESCRIPTION:");
+						    	state = ICS_DESC;
+				    		}
+				    	break;
+	    			case ICS_SKIP:
+					    	sb.Append("DESCRIPTION:");
+					    	state = ICS_DESC;
+				    	break;
+	    			case ICS_DESC:
+				    	if (line.StartsWith("---")) {
+					    	sb.Append("\nTRANSP:OPAQUE\n");
+					    	sb.Append("END:VEVENT\n");
+					    	StartIcsEvent(sb);
+				    		state = ICS_TITLE;
+				    	} else {
+					    	sb.Append(line);
+					    }
+				    	break;
+		    		
+		    	}
+		    }
+		}
+		if (sb.Length > 0) sb.Append("\nTRANSP:OPAQUE\nEND:VEVENT");
+
 		string content = sb.ToString();
 		WriteFile(siteFile, template, content);
 	}
@@ -401,6 +581,10 @@ public class Bijou {
 					ProcessCsvFile(contentFolder, siteFolder, fi.Name);					
 				} else if (fi.Extension == ".md") {
 					ProcessMarkdownFile(contentFolder, siteFolder, fi.Name);					
+				} else if (fi.Extension == ".rss") {
+					ProcessRssFile(contentFolder, siteFolder, fi.Name);					
+				} else if (fi.Extension == ".ics") {
+					ProcessIcsFile(contentFolder, siteFolder, fi.Name);					
 				}
 			} else {
 				string contentFile = contentFolder + "/" + fi.Name;

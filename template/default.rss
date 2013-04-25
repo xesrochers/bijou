@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+<channel>
+<title>Bijou News Feed</title>
+<link>{$url}</link>
+<description>Sample News Feed for the Bijou Static Website Template Engine</description>
+<language>en-us</language>
+<copyright>Copyright</copyright>
+<lastBuildDate>{$gmtdatetime}</lastBuildDate>
+<ttl>240</ttl>
+{$content}
+</channel>
+</rss>
