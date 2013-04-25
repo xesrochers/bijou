@@ -22,7 +22,7 @@ public class Bijou {
 	public static string SiteFolder = "/site";
 	public static string WebRoot = "";
 	public static string Children = "";
-	private static int Level = 0;
+	//private static int Level = 0;
 
 	public static void CreateFolder(string folder){
 		if(!Directory.Exists(folder)) {
@@ -98,6 +98,10 @@ public class Bijou {
 		return folder.Contains(".");
 	} 
 
+	private static bool IsInvisible(string folder) {
+		return folder.StartsWith("0.");
+	} 
+
 	private static bool IsTemplateDriven(string filename) {
 		return File.Exists("template/"+filename);
 	} 
@@ -153,7 +157,7 @@ public class Bijou {
 
 		foreach(DirectoryInfo di in folder.GetDirectories()) {
 
-			if (IsNavigation(di.Name)){
+			if (IsNavigation(di.Name) && !IsInvisible(di.Name)){
 				string currentPath =  path + "/" + di.Name;
 				if (Debug) Console.WriteLine("BuildTopNav "+ currentPath);
 				nav.Append("<li>");
