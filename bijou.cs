@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.Xsl;
+using System.Collections;
 
 /**************************************************
  * <summary>
@@ -15,6 +16,7 @@ public class Bijou {
 	public static bool Debug = false;
 	public static bool Index = false;
 	public static bool Verbose = false;
+	public static bool ExtentionMatch = false;
 	public static bool Home = false;
 	public static string Folder = ".";
 	public static string TopNav = "";
@@ -22,6 +24,8 @@ public class Bijou {
 	public static string SiteFolder = "/site";
 	public static string WebRoot = "";
 	public static string Children = "";
+	public static string CurrentPageUrl = "/";
+	public static string[] TemplateTypes = null;
 	// private static int Level = 0;
 
 	public static void CreateFolder(string folder){
@@ -81,6 +85,16 @@ public class Bijou {
 		CreateTemplateHeader();*/
 	}
 
+	public static string[] ScanTemplateTypes() {
+		ArrayList result = new ArrayList();
+
+		DirectoryInfo folder = new DirectoryInfo(Folder + "/template"); 
+		foreach(FileInfo fi in folder.GetFiles("*")) {
+			result.Add(fi.Extension);
+		}
+		return (string[]) result.ToArray( typeof( string ) );
+	}
+
 	private static void WriteFile(string filename, string template, string content) {
 
 		using (StreamWriter sw = File.CreateText(filename)) {
@@ -90,6 +104,7 @@ public class Bijou {
 			text = text.Replace("{$breadcrumb}", Breadcrumb);
 			text = text.Replace("{$children}", Children);
 			text = text.Replace("{$root}", WebRoot);
+			text = text.Replace("{$url}", CurrentPageUrl);
 	        sw.WriteLine(text);
 	    }
 	} 
@@ -103,7 +118,18 @@ public class Bijou {
 	} 
 
 	private static bool IsTemplateDriven(string filename) {
-		return File.Exists("template/"+filename);
+		bool result = false;
+		if (ExtentionMatch) {
+			foreach (string ext in TemplateTypes) {
+				if (filename.EndsWith(ext)) {
+					result = true;
+					break;
+				}
+			}
+		} else {
+			result = File.Exists("template/"+filename);
+		}
+		return result;
 	} 
 
 	private static void BuildLink(StringBuilder stream, string currentPath, DirectoryInfo di) {
@@ -178,19 +204,23 @@ public class Bijou {
 		// return (nav.ToString());
 	}
 
+	private static string BuildTemplateFilename(string filename, string ext) {
+		return (ExtentionMatch) ? string.Format("template/default{0}", ext) : string.Format("template/{0}", filename);
+	}
 
-	private static void ProcessHtmlFile(string contentFolder, string siteFolder, string filename) {
+
+	private static void ProcessHtmlFile(string contentFolder, string siteFolder, string filename, string ext) {
 		string contentFile = contentFolder + "/" + filename;
-		string templateFile = "template/" + filename;
+		string templateFile = BuildTemplateFilename(filename, ext);
 		string siteFile = siteFolder + "/index.html";
 		string template = File.ReadAllText(templateFile);
 		string content = File.ReadAllText(contentFile);
 		WriteFile(siteFile, template, content);
 	}
 
-	private static void ProcessXmlFile(string contentFolder, string siteFolder, string filename) {
+	private static void ProcessXmlFile(string contentFolder, string siteFolder, string filename, string ext) {
 		string contentFile = contentFolder + "/" + filename;
-		string templateFile = "template/" + filename;
+		string templateFile = BuildTemplateFilename(filename, ext);
 		string siteFile = siteFolder + "/index.html";
 
 		XsltArgumentList xslArg = new XsltArgumentList();
@@ -207,9 +237,9 @@ public class Bijou {
 
 	}
 
-	private static void ProcessCsvFile(string contentFolder, string siteFolder, string filename) {
+	private static void ProcessCsvFile(string contentFolder, string siteFolder, string filename, string ext) {
 		string contentFile = contentFolder + "/" + filename;
-		string templateFile = "template/" + filename;
+		string templateFile = BuildTemplateFilename(filename, ext);
 		string siteFile = siteFolder + "/index.html";
 		string template = File.ReadAllText(templateFile);
 	    StringBuilder sb = new StringBuilder();
@@ -243,9 +273,9 @@ public class Bijou {
 	private const int RSS_DATE  = 3;
 	private const int RSS_DESC  = 4;
 
-	private static void ProcessRssFile(string contentFolder, string siteFolder, string filename) {
+	private static void ProcessRssFile(string contentFolder, string siteFolder, string filename, string ext) {
 		string contentFile = contentFolder + "/" + filename;
-		string templateFile = "template/" + filename;
+		string templateFile = BuildTemplateFilename(filename, ext);
 		string siteFile = siteFolder + "/index.rss";
 		string template = File.ReadAllText(templateFile);
 	    StringBuilder sb = new StringBuilder();
@@ -299,8 +329,8 @@ public class Bijou {
 
 	private static void StartIcsEvent(StringBuilder sb) {
 		DateTime now = DateTime.Now;
-		string date = string.Format("{0:yyyyMMdd}", now); // "20130413T034716"; // FIX THIS!
-		string time = string.Format("{0:hhmmss}", now); // "20130413T034716"; // FIX THIS!
+		string date = string.Format("{0:yyyyMMdd}", now); 
+		string time = string.Format("{0:hhmmss}", now);
 		sb.Append("BEGIN:VEVENT\n");
 		sb.Append("CREATED:19000101T120000Z\n");
 		sb.Append("SEQUENCE:0\n");
@@ -309,9 +339,9 @@ public class Bijou {
 		sb.AppendFormat("LAST-MODIFIED:{0}T{1}Z\n", date,time);
 	}
 
-	private static void ProcessIcsFile(string contentFolder, string siteFolder, string filename) {
+	private static void ProcessIcsFile(string contentFolder, string siteFolder, string filename, string ext) {
 		string contentFile = contentFolder + "/" + filename;
-		string templateFile = "template/" + filename;
+		string templateFile = BuildTemplateFilename(filename, ext);
 		string siteFile = siteFolder + "/index.ics";
 		string template = File.ReadAllText(templateFile);
 	    StringBuilder sb = new StringBuilder();
@@ -344,18 +374,12 @@ public class Bijou {
 								    	sb.AppendFormat("DTSTART:{0}T{1}00Z\n", date[0].Replace("/","").Trim(), time[1].Trim());
 								    }
 							    }
-								//DTSTART:20110331T230000Z
-								//DTEND:20110401T010000Z
-								//DTSTAMP:20130413T040110Z
-								
 	    					} else {
 	    						string[] date = line.Split('-');
 	    						if (date.Length == 2) {
 							    	sb.AppendFormat("DTSTART;VALUE=DATE:{0}\n", date[0].Replace("/","").Trim());
 							    	sb.AppendFormat("DTEND;VALUE=DATE:{0}\n", date[1].Replace("/","").Trim());
 							    }
-						    	//DTSTART;VALUE=DATE:20100913
-								//DTEND;VALUE=DATE:20101010
 	    					}
 					    	state = ICS_ID;
 				    	break;
@@ -475,9 +499,9 @@ public class Bijou {
 	    }
 	}
 
-	private static void ProcessMarkdownFile(string contentFolder, string siteFolder, string filename) {
+	private static void ProcessMarkdownFile(string contentFolder, string siteFolder, string filename, string ext) {
 		string contentFile = contentFolder + "/" + filename;
-		string templateFile = "template/" + filename;
+		string templateFile = BuildTemplateFilename(filename, ext);
 		string siteFile = siteFolder + "/index.html";
 		string template = File.ReadAllText(templateFile);
 		string content = ""; //File.ReadAllText(contentFile);
@@ -549,17 +573,17 @@ public class Bijou {
 
 				if (Verbose) Console.WriteLine("Processing "+ fi.Extension + " " + fi.Name);			
 				if (fi.Extension == ".html") {
-					ProcessHtmlFile(contentFolder, siteFolder, fi.Name);
+					ProcessHtmlFile(contentFolder, siteFolder, fi.Name, fi.Extension);
 				} else if (fi.Extension == ".xml") {
-					ProcessXmlFile(contentFolder, siteFolder, fi.Name);					
+					ProcessXmlFile(contentFolder, siteFolder, fi.Name, fi.Extension);					
 				} else if (fi.Extension == ".csv") {
-					ProcessCsvFile(contentFolder, siteFolder, fi.Name);					
+					ProcessCsvFile(contentFolder, siteFolder, fi.Name, fi.Extension);					
 				} else if (fi.Extension == ".md") {
-					ProcessMarkdownFile(contentFolder, siteFolder, fi.Name);					
+					ProcessMarkdownFile(contentFolder, siteFolder, fi.Name, fi.Extension);					
 				} else if (fi.Extension == ".rss") {
-					ProcessRssFile(contentFolder, siteFolder, fi.Name);					
+					ProcessRssFile(contentFolder, siteFolder, fi.Name, fi.Extension);					
 				} else if (fi.Extension == ".ics") {
-					ProcessIcsFile(contentFolder, siteFolder, fi.Name);					
+					ProcessIcsFile(contentFolder, siteFolder, fi.Name, fi.Extension);					
 				}
 			} else {
 				string contentFile = contentFolder + "/" + fi.Name;
@@ -580,6 +604,9 @@ public class Bijou {
 
 	public static void CreateSite() {
 		string siteFolder = (SiteFolder == "/site") ? Folder+"/site" : SiteFolder;
+
+		TemplateTypes = ScanTemplateTypes();
+
 		StringBuilder nav = new StringBuilder();
 
 		CreateFolder(siteFolder);
@@ -594,6 +621,7 @@ public class Bijou {
 	public static void Usage(bool detailed) {
 		Console.WriteLine("bijou [option]");
 		Console.WriteLine("  -c to clear out the existing 'site' folder");
+		Console.WriteLine("  -x match template based on extension only");
 		Console.WriteLine("  -i to activate index.html based urls");
 		Console.WriteLine("  -m to inject the home icon");
 		Console.WriteLine("  -o:path to change the output folder");
@@ -617,6 +645,8 @@ public class Bijou {
 						Bijou.Verbose = true;
 					} else if (arg == "-d") {
 						Bijou.Debug = true;
+					} else if (arg == "-x") {
+						Bijou.ExtentionMatch = true;
 					} else if (arg == "-i") {
 						Bijou.Index = true;
 					} else if (arg == "-m") {
