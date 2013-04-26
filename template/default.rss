@@ -6,7 +6,7 @@
 <description>Sample News Feed for the Bijou Static Website Template Engine</description>
 <language>en-us</language>
 <copyright>Copyright</copyright>
-<lastBuildDate>{$gmtdatetime}</lastBuildDate>
+<lastBuildDate>{$gmt}</lastBuildDate>
 <ttl>240</ttl>
 {$content}
 </channel>

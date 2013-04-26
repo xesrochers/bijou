@@ -99,15 +99,33 @@ public class Bijou {
 
 		using (StreamWriter sw = File.CreateText(filename)) {
 			string text = "";
+			DateTime now = DateTime.Now;
 			text = template.Replace("{$content}", content);
+			text = text.Replace("{$root}", WebRoot);
 			text = text.Replace("{$topnav}", TopNav);
 			text = text.Replace("{$breadcrumb}", Breadcrumb);
 			text = text.Replace("{$children}", Children);
-			text = text.Replace("{$root}", WebRoot);
 			text = text.Replace("{$url}", CurrentPageUrl);
+			text = text.Replace("{$date}", string.Format("{0:yyyy/MM/dd}", now ));
+			text = text.Replace("{$time}", string.Format("{0:hh}:{1:mm}", now, now ));
+			text = text.Replace("{$gmt}", string.Format("{0:yyyyMMdd}T{1:hhmmss}Z", now, now));
 	        sw.WriteLine(text);
 	    }
 	} 
+
+	private static XsltArgumentList BuildXsltArgumentList() {
+		XsltArgumentList result = new XsltArgumentList();
+		DateTime now = DateTime.Now;
+        result.AddParam("root", "", WebRoot);
+        result.AddParam("topnav", "", TopNav);
+        result.AddParam("breadcrumb", "", Breadcrumb);
+        result.AddParam("children", "", Children);
+		result.AddParam("url", "", CurrentPageUrl);
+		result.AddParam("date", "", string.Format("{0:yyyy/MM/dd}", now ));
+		result.AddParam("time", "", string.Format("{0:hh}:{1:mm}", now, now ));
+		result.AddParam("gmt", "", string.Format("{0:yyyyMMdd}T{1:hhmmss}Z", now, now));
+        return result;
+	}
 
 	private static bool IsNavigation(string folder) {
 		return folder.Contains(".");
@@ -178,7 +196,8 @@ public class Bijou {
 
 		nav.Append("<ul>");
 		if (path=="" && Home) {
-			nav.AppendFormat("<li><a href='{0}' class='icon-home'></a></li>", WebRoot);
+			string root = (string.IsNullOrEmpty(WebRoot)) ? "/" : WebRoot;
+			nav.AppendFormat("<li><a href='{0}' class='icon-home'></a></li>", root);
 		}
 
 		foreach(DirectoryInfo di in folder.GetDirectories()) {
@@ -223,12 +242,7 @@ public class Bijou {
 		string templateFile = BuildTemplateFilename(filename, ext);
 		string siteFile = siteFolder + "/index.html";
 
-		XsltArgumentList xslArg = new XsltArgumentList();
-        xslArg.AddParam("root", "", WebRoot);
-        xslArg.AddParam("topnav", "", TopNav);
-        xslArg.AddParam("breadcrumb", "", Breadcrumb);
-        xslArg.AddParam("children", "", Children);
-
+		XsltArgumentList xslArg = BuildXsltArgumentList();
         XslCompiledTransform xslt = new XslCompiledTransform();
         xslt.Load(templateFile); 
         using (XmlWriter writer = XmlWriter.Create(siteFile)) {
@@ -278,7 +292,9 @@ public class Bijou {
 		string templateFile = BuildTemplateFilename(filename, ext);
 		string siteFile = siteFolder + "/index.rss";
 		string template = File.ReadAllText(templateFile);
-	    StringBuilder sb = new StringBuilder();
+	    StringBuilder rss = new StringBuilder();
+	    StringBuilder htm = new StringBuilder();
+	    //StringBuilder js = new StringBuilder();
 		using (StreamReader sr = new StreamReader(contentFile)) {
 		    string line;
 		    int state = RSS_START;
@@ -286,37 +302,45 @@ public class Bijou {
 	    		switch (state) {
 	    			case RSS_START:
 				    	if (line.StartsWith("---")) {
-					    	sb.Append("<item>");
+					    	rss.Append("<item>");
+					    	htm.Append("<article class='news-item'>");
 					    	state = RSS_TITLE;
 					    }
 				    	break;
 	    			case RSS_TITLE:
-					    	sb.AppendFormat("<title>{0}</title>", line);
+					    	rss.AppendFormat("<title>{0}</title>", line);
+					    	htm.AppendFormat("<h2>{0}</h2>", line);
 					    	state = RSS_SKIP;
 				    	break;
 	    			case RSS_SKIP:
 					    	state = RSS_DATE;
 				    	break;
 	    			case RSS_DATE:
-					    	sb.AppendFormat("<pubDate>{0}</pubDate>\n<description>", line);
+					    	rss.AppendFormat("<pubDate>{0}</pubDate>\n<description>", line);
+					    	htm.AppendFormat("<q>{0}</q>\n<p>", line);
 					    	state = RSS_DESC;
 				    	break;
 	    			case RSS_DESC:
 				    	if (line.StartsWith("---")) {
-				    		sb.Append("</description>\n</item>\n<item>");
+				    		rss.Append("</description>\n</item>\n<item>");
+				    		htm.Append("</p>\n</article>\n<article>");
 				    		state = RSS_TITLE;
 				    	} else {
-					    	sb.Append(line);
+					    	rss.Append(line);
+					    	htm.Append(line);
 					    }
 				    	break;
 		    		
 		    	}
 		    }
 		}
-		if (sb.Length > 0) sb.Append("</description>\n</item>");
+		if (rss.Length > 0) rss.Append("</description>\n</item>");
+		if (htm.Length > 0) htm.Append("</p>\n</article>");
 
-		string content = sb.ToString();
+		string content = rss.ToString();
 		WriteFile(siteFile, template, content);
+
+		HtmlClone(contentFolder, siteFolder, filename, ext, htm);
 	}
 
 	private const int ICS_START    = 0;
@@ -327,16 +351,17 @@ public class Bijou {
 	private const int ICS_SKIP     = 5;
 	private const int ICS_DESC     = 6;
 
-	private static void StartIcsEvent(StringBuilder sb) {
+	private static void StartIcsEvent(StringBuilder ics, StringBuilder htm) {
 		DateTime now = DateTime.Now;
 		string date = string.Format("{0:yyyyMMdd}", now); 
 		string time = string.Format("{0:hhmmss}", now);
-		sb.Append("BEGIN:VEVENT\n");
-		sb.Append("CREATED:19000101T120000Z\n");
-		sb.Append("SEQUENCE:0\n");
-		sb.Append("STATUS:CONFIRMED\n");
-		sb.AppendFormat("DTSTAMP:{0}T{1}Z\n", date,time);
-		sb.AppendFormat("LAST-MODIFIED:{0}T{1}Z\n", date,time);
+		ics.Append("BEGIN:VEVENT\n");
+		ics.Append("CREATED:19000101T120000Z\n");
+		ics.Append("SEQUENCE:0\n");
+		ics.Append("STATUS:CONFIRMED\n");
+		ics.AppendFormat("DTSTAMP:{0}T{1}Z\n", date,time);
+		
+		htm.Append("<div class='event'>");
 	}
 
 	private static void ProcessIcsFile(string contentFolder, string siteFolder, string filename, string ext) {
@@ -344,7 +369,8 @@ public class Bijou {
 		string templateFile = BuildTemplateFilename(filename, ext);
 		string siteFile = siteFolder + "/index.ics";
 		string template = File.ReadAllText(templateFile);
-	    StringBuilder sb = new StringBuilder();
+	    StringBuilder ics = new StringBuilder();
+	    StringBuilder htm = new StringBuilder();
 		using (StreamReader sr = new StreamReader(contentFile)) {
 		    string line;
 		    int state = ICS_START;
@@ -352,16 +378,18 @@ public class Bijou {
 	    		switch (state) {
 	    			case ICS_START:
 				    	if (line.StartsWith("---")) {
-				    		StartIcsEvent(sb);
+				    		StartIcsEvent(ics, htm);
 					    	state = RSS_TITLE;
 					    }
 				    	break;
 	    			case ICS_TITLE:
-					    	sb.AppendFormat("SUMMARY:{0}\n", line);
+					    	ics.AppendFormat("SUMMARY:{0}\n", line);
+					    	htm.AppendFormat("<h2>{0}</h2>", line);
 					    	state = ICS_LOCATION;
 				    	break;
 	    			case ICS_LOCATION:
-					    	sb.AppendFormat("LOCATION:{0}\n", line);
+					    	ics.AppendFormat("LOCATION:{0}\n", line);
+					    	htm.AppendFormat("<div class='location'>{0}</div>", line);
 					    	state = ICS_DATE;
 				    	break;
 	    			case ICS_DATE:
@@ -370,49 +398,68 @@ public class Bijou {
 	    						if (date.Length == 2) {
 		    						string[] time = date[1].Replace(":","").Split('-');
 		    						if (time.Length == 2) {
-								    	sb.AppendFormat("DTSTART:{0}T{1}00Z\n", date[0].Replace("/","").Trim(), time[0].Trim());
-								    	sb.AppendFormat("DTSTART:{0}T{1}00Z\n", date[0].Replace("/","").Trim(), time[1].Trim());
+								    	ics.AppendFormat("DTSTART:{0}T{1}00Z\n", date[0].Replace("/","").Trim(), time[0].Trim());
+								    	ics.AppendFormat("DTEND:{0}T{1}00Z\n", date[0].Replace("/","").Trim(), time[1].Trim());
+								    	htm.AppendFormat("<div class='date-time'>{0} ({1}-{2})</div>", date[0], time[0], time[1]);
 								    }
 							    }
 	    					} else {
 	    						string[] date = line.Split('-');
 	    						if (date.Length == 2) {
-							    	sb.AppendFormat("DTSTART;VALUE=DATE:{0}\n", date[0].Replace("/","").Trim());
-							    	sb.AppendFormat("DTEND;VALUE=DATE:{0}\n", date[1].Replace("/","").Trim());
+							    	ics.AppendFormat("DTSTART;VALUE=DATE:{0}\n", date[0].Replace("/","").Trim());
+							    	ics.AppendFormat("DTEND;VALUE=DATE:{0}\n", date[1].Replace("/","").Trim());
+							    	htm.AppendFormat("<div class='date-time'>{0} - {1}</div>", date[0], date[1]);
 							    }
 	    					}
 					    	state = ICS_ID;
 				    	break;
 	    			case ICS_ID:
 					    	if (!line.StartsWith("---")) {
-					    		sb.AppendFormat("UID:{0}\n", line);
+					    		ics.AppendFormat("UID:{0}\n", line);
+					    		htm.AppendFormat("UID:{0}\n", line);
 					    		state = ICS_SKIP;
 				    		} else {
-						    	sb.Append("DESCRIPTION:");
+						    	ics.Append("DESCRIPTION:");
+						    	htm.Append("<p>");
 						    	state = ICS_DESC;
 				    		}
 				    	break;
 	    			case ICS_SKIP:
-					    	sb.Append("DESCRIPTION:");
+					    	ics.Append("DESCRIPTION:");
+					    	htm.Append("<p>");
 					    	state = ICS_DESC;
 				    	break;
 	    			case ICS_DESC:
 				    	if (line.StartsWith("---")) {
-					    	sb.Append("\nTRANSP:OPAQUE\n");
-					    	sb.Append("END:VEVENT\n");
-					    	StartIcsEvent(sb);
+					    	ics.Append("\nTRANSP:OPAQUE\n");
+					    	ics.Append("END:VEVENT\n");
+					    	htm.Append("</p></div>");
+					    	StartIcsEvent(ics, htm);
 				    		state = ICS_TITLE;
 				    	} else {
-					    	sb.Append(line);
+					    	ics.Append(line);
+					    	htm.Append(line);
 					    }
 				    	break;
 		    		
 		    	}
 		    }
 		}
-		if (sb.Length > 0) sb.Append("\nTRANSP:OPAQUE\nEND:VEVENT");
+		if (ics.Length > 0) ics.Append("\nTRANSP:OPAQUE\nEND:VEVENT");
+		if (htm.Length > 0) htm.Append("</p></div>");
 
-		string content = sb.ToString();
+		string content = ics.ToString();
+		WriteFile(siteFile, template, content);
+
+		HtmlClone(contentFolder, siteFolder, filename, ext, htm);		
+	}
+
+	private static void HtmlClone(string contentFolder, string siteFolder, string filename, string ext, StringBuilder clone) {
+		string templateFile = BuildTemplateFilename(filename.Replace(ext, ".html"), ext);
+		string siteFile = siteFolder + "/index.html";
+		string template = File.ReadAllText(templateFile);
+
+		string content = clone.ToString();
 		WriteFile(siteFile, template, content);
 	}
 
@@ -570,6 +617,7 @@ public class Bijou {
 			if (IsTemplateDriven(fi.Name)) {
 
 				Children = BuildChildLinks(folder);
+				CurrentPageUrl = folder.Name + "/";
 
 				if (Verbose) Console.WriteLine("Processing "+ fi.Extension + " " + fi.Name);			
 				if (fi.Extension == ".html") {

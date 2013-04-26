@@ -1,5 +1,5 @@
 <div id="reference">
-	<h1>Command Line Options</h1>
+	<h2>Command Line Options</h2>
 	<dl>
 		<dt>-h</dt>
 		<dd>Used to display the help menu</dd>
@@ -9,6 +9,8 @@
 		<dd>Used to activate index.html based urls (to browse site without a webserver)</dd>
 		<dt>-x</dt>
 		<dd>Match template based on the file extension only (for single layout sites)</dd>
+		<dt>-s  (NOT IMPLEMENTED)</dt>
+		<dd>Build a search index (for the search engine)</dd>
 		<dt>-o:folder</dt>
 		<dd>Used specify an output folder (different than site)</dd>
 		<dt>-r:folder</dt>
@@ -19,7 +21,7 @@
 		<dd>Used to enable debug mode</dd>
 	</dl>
 
-	<h1>Subtitution tags</h1>
+	<h2>Subtitution tags</h2>
 	<dl>
 		<dt>&#123;$root&#125;</dt>
 		<dd>Used inject the root folder of the site (for styles &amp; scripts)</dd>
@@ -29,5 +31,13 @@
 		<dd>Used inject the breadcrumb</dd>
 		<dt>&#123;$children&#125;</dt>
 		<dd>Used inject links of the direct children of the page</dd>
+		<dt>&#123;$url&#125;</dt>
+		<dd>Current page URL</dd>
+		<dt>&#123;$date&#125;</dt>
+		<dd>Current date (yyyy/mm/dd)</dd>
+		<dt>&#123;$time&#125;</dt>
+		<dd>Current time (hh:mm)</dd>
+		<dt>&#123;$gmt&#125;</dt>
+		<dd>Current GMT datetime (yyyymmddThhmmssZ) </dd>
 	</dl>
 </div>

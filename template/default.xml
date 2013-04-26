@@ -26,7 +26,7 @@
 				<xsl:value-of select="$breadcrumb" disable-output-escaping="yes"/>
 			</nav>
 			<div id='content'>
-				<h1><xsl:value-of select="/tasks/@title"/></h1>
+				<h2><xsl:value-of select="/tasks/@title"/></h2>
 
 			    <xsl:for-each select="/tasks/task">
 				    <dl>

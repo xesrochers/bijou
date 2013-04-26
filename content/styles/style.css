@@ -78,7 +78,7 @@ table th  {
 
 table th, table td  {
 	text-align: left;
-	padding: .2em;
+	padding: .5em .7em;
 }
 
 table tr:nth-child(odd) {
