@@ -26,7 +26,7 @@ public class Bijou {
 	public static string Children = "";
 	public static string CurrentPageUrl = "/";
 	public static string[] TemplateTypes = null;
-	// private static int Level = 0;
+	private static int Level = -1;
 
 	public static void CreateFolder(string folder){
 		if(!Directory.Exists(folder)) {
@@ -95,13 +95,40 @@ public class Bijou {
 		return (string[]) result.ToArray( typeof( string ) );
 	}
 
+
+	private static string BuildRelativePath(int level) {
+		string result = "";
+		if (level > 0){
+			for(int i=0; i<level; i++){
+				if (!string.IsNullOrEmpty(result)) result += "/";
+				result += "..";
+			}
+		} else {
+			result = ".";
+		}
+		return result;
+	}
+
+
+	private static string BuildRootPath(int level) {
+		string result = string.Empty;
+		if (Index) {
+			result = BuildRelativePath(level);
+		} else {
+			result = WebRoot;
+		}
+		return result;
+	}
+
+
+
 	private static void WriteFile(string filename, string template, string content) {
 
 		using (StreamWriter sw = File.CreateText(filename)) {
 			string text = "";
 			DateTime now = DateTime.Now;
 			text = template.Replace("{$content}", content);
-			text = text.Replace("{$root}", WebRoot);
+			text = text.Replace("{$root}", BuildRootPath(Level));
 			text = text.Replace("{$topnav}", TopNav);
 			text = text.Replace("{$breadcrumb}", Breadcrumb);
 			text = text.Replace("{$children}", Children);
@@ -116,7 +143,7 @@ public class Bijou {
 	private static XsltArgumentList BuildXsltArgumentList() {
 		XsltArgumentList result = new XsltArgumentList();
 		DateTime now = DateTime.Now;
-        result.AddParam("root", "", WebRoot);
+        result.AddParam("root", "", BuildRootPath(Level));
         result.AddParam("topnav", "", TopNav);
         result.AddParam("breadcrumb", "", Breadcrumb);
         result.AddParam("children", "", Children);
@@ -154,8 +181,10 @@ public class Bijou {
 		string stripped = StripPrefix(di.Name, '.');
 		string displayName = ParseDisplayName(stripped); 
 		string strippedPath = StripPrefix(currentPath);
+
 		if (Index) {
-			stream.AppendFormat("<a href='{0}/index.html'>{1}</a>", strippedPath, displayName);
+			string root = BuildRelativePath(Level);
+			stream.AppendFormat("<a href='{0}{1}index.html'>{2}</a>", root, strippedPath, displayName);
 		} else if (WebRoot == "") {
 			stream.AppendFormat("<a href='{0}'>{1}</a>", strippedPath, displayName);
 		} else {
@@ -167,6 +196,7 @@ public class Bijou {
 		StringBuilder result = new StringBuilder();
 		DirectoryInfo[] children = folder.GetDirectories();
 		if ((children !=null) && (children.Length > 0)) {
+
 			result.Append("<ul>");
 			foreach(DirectoryInfo di in children) {
 				if (IsNavigation(di.Name)  && !IsInvisible(di.Name)){
@@ -191,13 +221,20 @@ public class Bijou {
 		return result.ToString();
 	}
 
-	private static void BuildTopNav(StringBuilder nav, string contentFolder, string path) {
-		DirectoryInfo folder = new DirectoryInfo(contentFolder + "/" + path); 
 
+	private static void BuildTopNav(StringBuilder nav, string contentFolder, string path) {
+		Level++;
+		DirectoryInfo folder = new DirectoryInfo(contentFolder + "/" + path); 
 		nav.Append("<ul>");
-		if (path=="" && Home) {
-			string root = (string.IsNullOrEmpty(WebRoot)) ? "/" : WebRoot;
-			nav.AppendFormat("<li><a href='{0}' class='icon-home'></a></li>", root);
+		if (Level==0 && Home) {
+			string root = BuildRootPath(Level);
+			if (Index) {
+				nav.AppendFormat("<li><a href='{0}/index.html' class='icon-home'></a></li>", root);
+			} else if (string.IsNullOrEmpty(WebRoot)) {
+				nav.Append("<li><a href='/' class='icon-home'></a></li>");
+			} else {
+				nav.AppendFormat("<li><a href='{0}' class='icon-home'></a></li>", root);
+			}
 		}
 
 		foreach(DirectoryInfo di in folder.GetDirectories()) {
@@ -221,6 +258,7 @@ public class Bijou {
 		}
 		nav.Append("</ul>");
 		// return (nav.ToString());
+		Level--;
 	}
 
 	private static string BuildTemplateFilename(string filename, string ext) {
@@ -612,7 +650,7 @@ public class Bijou {
 
 	private static void ProcessFolder(string contentFolder, string siteFolder) {
 		DirectoryInfo folder = new DirectoryInfo(contentFolder); 
-
+		Level++;
 		foreach(FileInfo fi in folder.GetFiles("*")) {
 			if (IsTemplateDriven(fi.Name)) {
 
@@ -648,6 +686,7 @@ public class Bijou {
 			CreateFolder(childSite);
 			ProcessFolder(childContent, childSite);
 		}
+		Level--;
 	}
 
 	public static void CreateSite() {
