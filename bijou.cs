@@ -18,6 +18,7 @@ public class Bijou {
 	public static bool Verbose = false;
 	public static bool ExtentionMatch = false;
 	public static bool Home = false;
+	// public static bool HasSearch = false;
 	public static string Folder = ".";
 	public static string TopNav = "";
 	public static string Breadcrumb = "";
@@ -27,6 +28,12 @@ public class Bijou {
 	public static string CurrentPageUrl = "/";
 	public static string[] TemplateTypes = null;
 	private static int Level = -1;
+
+	private static StringBuilder SearchData = new StringBuilder();
+	private static string SearchContentFolder = null;
+	private static string SearchSiteFolder = null;
+	private static string SearchTemplate = null;
+	private static string SearchExtension = null;
 
 	public static void CreateFolder(string folder){
 		if(!Directory.Exists(folder)) {
@@ -136,6 +143,9 @@ public class Bijou {
 			text = text.Replace("{$date}", string.Format("{0:yyyy/MM/dd}", now ));
 			text = text.Replace("{$time}", string.Format("{0:hh}:{1:mm}", now, now ));
 			text = text.Replace("{$gmt}", string.Format("{0:yyyyMMdd}T{1:hhmmss}Z", now, now));
+			if (SearchData.Length > 0) {
+				text = text.Replace("{$search}", SearchData.ToString());
+			}
 	        sw.WriteLine(text);
 	    }
 	} 
@@ -162,6 +172,10 @@ public class Bijou {
 		return folder.StartsWith("0.");
 	} 
 
+	/*private static bool IsExtension(string folder) {
+		return folder.StartsWith("X.");
+	}*/
+
 	private static bool IsTemplateDriven(string filename) {
 		bool result = false;
 		if (ExtentionMatch) {
@@ -176,6 +190,21 @@ public class Bijou {
 		}
 		return result;
 	} 
+
+	/*public static void CheckExtensions(string contentFolder){
+		DirectoryInfo folder = new DirectoryInfo(contentFolder); 
+
+		DirectoryInfo[] children = folder.GetDirectories();
+		if ((children !=null) && (children.Length > 0)) {
+			foreach(DirectoryInfo di in children) {
+				if (di.Name.StartsWith("X.")) {
+					if (di.Name == "X.Search") {
+						HasSearch = true;
+					}
+				}
+			}
+		}
+	}*/
 
 	private static void BuildLink(StringBuilder stream, string currentPath, DirectoryInfo di) {
 		string stripped = StripPrefix(di.Name, '.');
@@ -273,6 +302,14 @@ public class Bijou {
 		string template = File.ReadAllText(templateFile);
 		string content = File.ReadAllText(contentFile);
 		WriteFile(siteFile, template, content);
+
+		if (content.Contains("{$search}")) {
+			SearchContentFolder = contentFolder;
+			SearchSiteFolder = siteFolder;
+			SearchTemplate = filename;
+			SearchExtension = ext;
+		}
+
 	}
 
 	private static void ProcessXmlFile(string contentFolder, string siteFolder, string filename, string ext) {
@@ -671,6 +708,11 @@ public class Bijou {
 				} else if (fi.Extension == ".ics") {
 					ProcessIcsFile(contentFolder, siteFolder, fi.Name, fi.Extension);					
 				}
+
+
+				if (!IsInvisible(folder.Name)) AppendSearchData(contentFolder, siteFolder, fi.Name, fi.Extension);
+
+
 			} else {
 				string contentFile = contentFolder + "/" + fi.Name;
 				string siteFile = siteFolder + "/" + fi.Name;
@@ -689,8 +731,40 @@ public class Bijou {
 		Level--;
 	}
 
+	private static void AppendSearchData(string contentFolder, string siteFolder, string filename, string ext) {
+		string contentFile = contentFolder + "/" + filename;
+		//string templateFile = BuildTemplateFilename(filename, ext);
+		//string siteFile = siteFolder + "/index.html";
+		//string template = File.ReadAllText(templateFile);
+		string content = File.ReadAllText(contentFile);
+
+		siteFolder = siteFolder.Replace("."+SiteFolder, WebRoot); // HACK FOR NOW
+		string displayName = siteFolder;
+		string cssClass = "";		
+		if (string.IsNullOrEmpty(siteFolder)) {
+ 			siteFolder = "/";
+ 			displayName = "";
+ 			cssClass = " class='icon-home'";
+		}
+
+		content = content.Replace("<", "").Replace("/", " ").Replace(">"," "); // HACK FOR NOW
+
+		SearchData.AppendFormat("<li><a href='{0}' {1}>{2}</a><span class='hidden'>{3}</span></li>", siteFolder, cssClass, displayName, content);
+	}
+
+	private static void ProcessSearchFile(string contentFolder, string siteFolder, string filename, string ext) {
+		string contentFile = contentFolder + "/" + filename;
+		string templateFile = BuildTemplateFilename(filename, ext);
+		string siteFile = siteFolder + "/index.html";
+		string template = File.ReadAllText(templateFile);
+		string content = File.ReadAllText(contentFile);
+		WriteFile(siteFile, template, content);
+	}
+
 	public static void CreateSite() {
 		string siteFolder = (SiteFolder == "/site") ? Folder+"/site" : SiteFolder;
+
+		// CheckExtensions(Folder+"/content");
 
 		TemplateTypes = ScanTemplateTypes();
 
@@ -702,6 +776,10 @@ public class Bijou {
 		TopNav = nav.ToString();
 
 		ProcessFolder(Folder+"/content", siteFolder);
+
+		if (SearchData.Length >0) {
+			ProcessSearchFile(SearchContentFolder, SearchSiteFolder, SearchTemplate, SearchExtension);
+		}
 	}
 
 
@@ -709,14 +787,15 @@ public class Bijou {
 		Console.WriteLine("bijou [option]");
 		Console.WriteLine("  -c to clear out the existing 'site' folder");
 		Console.WriteLine("  -x match template based on extension only");
-		Console.WriteLine("  -i to activate index.html based urls");
+		Console.WriteLine("  -i to activate index.html based urls (NOT IMPLEMENTED)");
 		Console.WriteLine("  -m to inject the home icon");
+		// Console.WriteLine("  -s to inject the search page");
 		Console.WriteLine("  -o:path to change the output folder");
 		Console.WriteLine("  -r:path to change the root folder");
 		Console.WriteLine("  -v verbose");
 		Console.WriteLine("  -d debug");
 		if (detailed) {
-			Console.WriteLine("bijou walks through the content folder and creates the html files based on the given template.");
+			Console.WriteLine("Bijou walks through the content folder and creates the html files based on the given template.");
 
 		}
 	}

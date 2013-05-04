@@ -4,7 +4,7 @@
 bijou.exe: bijou.cs
 	gmcs bijou.cs
 
-doc:
+bijou: 
 	mono bijou.exe -m
 
 videotron:
