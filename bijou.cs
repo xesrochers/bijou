@@ -4,6 +4,8 @@ using System.Text;
 using System.Xml;
 using System.Xml.Xsl;
 using System.Collections;
+using System.Text.RegularExpressions;
+
 
 /**************************************************
  * <summary>
@@ -738,7 +740,7 @@ public class Bijou {
 		//string template = File.ReadAllText(templateFile);
 		string content = File.ReadAllText(contentFile);
 
-		siteFolder = siteFolder.Replace("."+SiteFolder, WebRoot); // HACK FOR NOW
+		siteFolder = siteFolder.Replace("."+SiteFolder, WebRoot); 
 		string displayName = siteFolder;
 		string cssClass = "";		
 		if (string.IsNullOrEmpty(siteFolder)) {
@@ -747,7 +749,7 @@ public class Bijou {
  			cssClass = " class='icon-home'";
 		}
 
-		content = content.Replace("<", "").Replace("/", " ").Replace(">"," "); // HACK FOR NOW
+		content = Regex.Replace(content, @"<[^>]*>", String.Empty); // Remove HTML tags
 
 		SearchData.AppendFormat("<li><a href='{0}' {1}>{2}</a><span class='hidden'>{3}</span></li>", siteFolder, cssClass, displayName, content);
 	}
