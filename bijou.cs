@@ -273,17 +273,22 @@ public class Bijou {
 		string contentFile = contentFolder + "/" + filename;
 		string templateFile = GetTemplateFilename(filename, ext);
 		string siteFile = siteFolder + "/index.html";
-		string template = File.ReadAllText(templateFile);
-		string content = File.ReadAllText(contentFile);
-		WriteFile(siteFile, template, content);
+		try {
+			string template = File.ReadAllText(templateFile);
+			string content = File.ReadAllText(contentFile);
+			WriteFile(siteFile, template, content);
 
-		if (content.Contains("{$search}")) {
-			SearchContentFolder = contentFolder;
-			SearchSiteFolder = siteFolder;
-			SearchTemplate = filename;
-			SearchExtension = ext;
+			if (content.Contains("{$search}")) {
+				SearchContentFolder = contentFolder;
+				SearchSiteFolder = siteFolder;
+				SearchTemplate = filename;
+				SearchExtension = ext;
+			}
+		} catch (Exception ex) {
+			Console.WriteLine("Unable to apply template to content file", ex);
+			Console.WriteLine(string.Format("Template: {0}",  templateFile));
+			Console.WriteLine(string.Format("Content:  {0}",  contentFile));
 		}
-
 	}
 
 	private static void ProcessXmlFile(string contentFolder, string siteFolder, string filename, string ext) {
@@ -291,12 +296,18 @@ public class Bijou {
 		string templateFile = GetTemplateFilename(filename, ext);
 		string siteFile = siteFolder + "/index.html";
 
-		XsltArgumentList xslArg = BuildXsltArgumentList();
-        XslCompiledTransform xslt = new XslCompiledTransform();
-        xslt.Load(templateFile); 
-        using (XmlWriter writer = XmlWriter.Create(siteFile)) {
-            xslt.Transform(contentFile, xslArg, writer);
-        }
+		try {
+			XsltArgumentList xslArg = BuildXsltArgumentList();
+	        XslCompiledTransform xslt = new XslCompiledTransform();
+	        xslt.Load(templateFile); 
+	        using (XmlWriter writer = XmlWriter.Create(siteFile)) {
+	            xslt.Transform(contentFile, xslArg, writer);
+	        }
+		} catch (Exception ex) {
+			Console.WriteLine("Unable to apply template to content file", ex);
+			Console.WriteLine(string.Format("Template: {0}",  templateFile));
+			Console.WriteLine(string.Format("Content:  {0}",  contentFile));
+		}
 
 	}
 
@@ -304,30 +315,37 @@ public class Bijou {
 		string contentFile = contentFolder + "/" + filename;
 		string templateFile = GetTemplateFilename(filename, ext);
 		string siteFile = siteFolder + "/index.html";
-		string template = File.ReadAllText(templateFile);
-	    StringBuilder sb = new StringBuilder();
-		using (StreamReader sr = new StreamReader(contentFile)) {
-		    string line;
-		    string tag = "th";
-	    	sb.Append("<table>");
-		    while ((line = sr.ReadLine()) != null) {
-		    	if (line.StartsWith("#")) {
-			    	sb.AppendFormat("<caption>{0}</caption>", line.Replace("#", "").Trim());
-		    	} else {
-			    	string[] tokens = line.Split(',');
-			    	sb.Append("<tr>");
-			    	for (int i =0 ; i< tokens.Length; i++){
-				    	sb.AppendFormat("<{0}>{1}</{0}>", tag, tokens[i]);
-			    	}
+		try {
+			string template = File.ReadAllText(templateFile);
+		    StringBuilder sb = new StringBuilder();
+			using (StreamReader sr = new StreamReader(contentFile)) {
+			    string line;
+			    string tag = "th";
+		    	sb.Append("<table>");
+			    while ((line = sr.ReadLine()) != null) {
+			    	if (line.StartsWith("#")) {
+				    	sb.AppendFormat("<caption>{0}</caption>", line.Replace("#", "").Trim());
+			    	} else {
+				    	string[] tokens = line.Split(',');
+				    	sb.Append("<tr>");
+				    	for (int i =0 ; i< tokens.Length; i++){
+					    	sb.AppendFormat("<{0}>{1}</{0}>", tag, tokens[i]);
+				    	}
 
-			    	sb.Append("</tr>");
-			    	tag = "td";
+				    	sb.Append("</tr>");
+				    	tag = "td";
+				    }
 			    }
-		    }
-	    	sb.Append("</table>");
+		    	sb.Append("</table>");
+			}
+			string content = sb.ToString();
+			WriteFile(siteFile, template, content);
+		} catch (Exception ex) {
+			Console.WriteLine("Unable to apply template to content file", ex);
+			Console.WriteLine(string.Format("Template: {0}",  templateFile));
+			Console.WriteLine(string.Format("Content:  {0}",  contentFile));
 		}
-		string content = sb.ToString();
-		WriteFile(siteFile, template, content);
+
 	}
 
 	private const int RSS_START = 0;
@@ -340,56 +358,64 @@ public class Bijou {
 		string contentFile = contentFolder + "/" + filename;
 		string templateFile = GetTemplateFilename(filename, ext);
 		string siteFile = siteFolder + "/index.rss";
-		string template = File.ReadAllText(templateFile);
-	    StringBuilder rss = new StringBuilder();
-	    StringBuilder htm = new StringBuilder();
-	    //StringBuilder js = new StringBuilder();
-		using (StreamReader sr = new StreamReader(contentFile)) {
-		    string line;
-		    int state = RSS_START;
-		    while ((line = sr.ReadLine()) != null) {
-	    		switch (state) {
-	    			case RSS_START:
-				    	if (line.StartsWith("---")) {
-					    	rss.Append("<item>");
-					    	htm.Append("<article class='news-item'>");
-					    	state = RSS_TITLE;
-					    }
-				    	break;
-	    			case RSS_TITLE:
-					    	rss.AppendFormat("<title>{0}</title>", line);
-					    	htm.AppendFormat("<h2>{0}</h2>", line);
-					    	state = RSS_SKIP;
-				    	break;
-	    			case RSS_SKIP:
-					    	state = RSS_DATE;
-				    	break;
-	    			case RSS_DATE:
-					    	rss.AppendFormat("<pubDate>{0}</pubDate>\n<description>", line);
-					    	htm.AppendFormat("<q>{0}</q>\n<p>", line);
-					    	state = RSS_DESC;
-				    	break;
-	    			case RSS_DESC:
-				    	if (line.StartsWith("---")) {
-				    		rss.Append("</description>\n</item>\n<item>");
-				    		htm.Append("</p>\n</article>\n<article>");
-				    		state = RSS_TITLE;
-				    	} else {
-					    	rss.Append(line);
-					    	htm.Append(line);
-					    }
-				    	break;
-		    		
-		    	}
-		    }
+
+		try {
+			string template = File.ReadAllText(templateFile);
+		    StringBuilder rss = new StringBuilder();
+		    StringBuilder htm = new StringBuilder();
+		    //StringBuilder js = new StringBuilder();
+			using (StreamReader sr = new StreamReader(contentFile)) {
+			    string line;
+			    int state = RSS_START;
+			    while ((line = sr.ReadLine()) != null) {
+		    		switch (state) {
+		    			case RSS_START:
+					    	if (line.StartsWith("---")) {
+						    	rss.Append("<item>");
+						    	htm.Append("<article class='news-item'>");
+						    	state = RSS_TITLE;
+						    }
+					    	break;
+		    			case RSS_TITLE:
+						    	rss.AppendFormat("<title>{0}</title>", line);
+						    	htm.AppendFormat("<h2>{0}</h2>", line);
+						    	state = RSS_SKIP;
+					    	break;
+		    			case RSS_SKIP:
+						    	state = RSS_DATE;
+					    	break;
+		    			case RSS_DATE:
+						    	rss.AppendFormat("<pubDate>{0}</pubDate>\n<description>", line);
+						    	htm.AppendFormat("<q>{0}</q>\n<p>", line);
+						    	state = RSS_DESC;
+					    	break;
+		    			case RSS_DESC:
+					    	if (line.StartsWith("---")) {
+					    		rss.Append("</description>\n</item>\n<item>");
+					    		htm.Append("</p>\n</article>\n<article>");
+					    		state = RSS_TITLE;
+					    	} else {
+						    	rss.Append(line);
+						    	htm.Append(line);
+						    }
+					    	break;
+			    		
+			    	}
+			    }
+			}
+			if (rss.Length > 0) rss.Append("</description>\n</item>");
+			if (htm.Length > 0) htm.Append("</p>\n</article>");
+
+			string content = rss.ToString();
+			WriteFile(siteFile, template, content);
+
+			HtmlClone(contentFolder, siteFolder, filename, ext, htm);
+		} catch (Exception ex) {
+			Console.WriteLine("Unable to apply template to content file", ex);
+			Console.WriteLine(string.Format("Template: {0}",  templateFile));
+			Console.WriteLine(string.Format("Content:  {0}",  contentFile));
 		}
-		if (rss.Length > 0) rss.Append("</description>\n</item>");
-		if (htm.Length > 0) htm.Append("</p>\n</article>");
 
-		string content = rss.ToString();
-		WriteFile(siteFile, template, content);
-
-		HtmlClone(contentFolder, siteFolder, filename, ext, htm);
 	}
 
 	private const int ICS_START    = 0;
@@ -417,90 +443,98 @@ public class Bijou {
 		string contentFile = contentFolder + "/" + filename;
 		string templateFile = GetTemplateFilename(filename, ext);
 		string siteFile = siteFolder + "/index.ics";
-		string template = File.ReadAllText(templateFile);
-	    StringBuilder ics = new StringBuilder();
-	    StringBuilder htm = new StringBuilder();
-		using (StreamReader sr = new StreamReader(contentFile)) {
-		    string line;
-		    int state = ICS_START;
-		    while ((line = sr.ReadLine()) != null) {
-	    		switch (state) {
-	    			case ICS_START:
-				    	if (line.StartsWith("---")) {
-				    		StartIcsEvent(ics, htm);
-					    	state = RSS_TITLE;
-					    }
-				    	break;
-	    			case ICS_TITLE:
-					    	ics.AppendFormat("SUMMARY:{0}\n", line);
-					    	htm.AppendFormat("<h2>{0}</h2>", line);
-					    	state = ICS_LOCATION;
-				    	break;
-	    			case ICS_LOCATION:
-					    	ics.AppendFormat("LOCATION:{0}\n", line);
-					    	htm.AppendFormat("<div class='location'>{0}</div>", line);
-					    	state = ICS_DATE;
-				    	break;
-	    			case ICS_DATE:
-	    					if (line.Contains(":")) {
-	    						string[] date = line.Replace("(","").Replace(")","").Trim().Split(' ');
-	    						if (date.Length == 2) {
-		    						string[] time = date[1].Replace(":","").Split('-');
-		    						if (time.Length == 2) {
-								    	ics.AppendFormat("DTSTART:{0}T{1}00Z\n", date[0].Replace("/","").Trim(), time[0].Trim());
-								    	ics.AppendFormat("DTEND:{0}T{1}00Z\n", date[0].Replace("/","").Trim(), time[1].Trim());
-								    	htm.AppendFormat("<div class='date-time'>{0} ({1}-{2})</div>", date[0], time[0], time[1]);
+
+		try {
+			string template = File.ReadAllText(templateFile);
+		    StringBuilder ics = new StringBuilder();
+		    StringBuilder htm = new StringBuilder();
+			using (StreamReader sr = new StreamReader(contentFile)) {
+			    string line;
+			    int state = ICS_START;
+			    while ((line = sr.ReadLine()) != null) {
+		    		switch (state) {
+		    			case ICS_START:
+					    	if (line.StartsWith("---")) {
+					    		StartIcsEvent(ics, htm);
+						    	state = RSS_TITLE;
+						    }
+					    	break;
+		    			case ICS_TITLE:
+						    	ics.AppendFormat("SUMMARY:{0}\n", line);
+						    	htm.AppendFormat("<h2>{0}</h2>", line);
+						    	state = ICS_LOCATION;
+					    	break;
+		    			case ICS_LOCATION:
+						    	ics.AppendFormat("LOCATION:{0}\n", line);
+						    	htm.AppendFormat("<div class='location'>{0}</div>", line);
+						    	state = ICS_DATE;
+					    	break;
+		    			case ICS_DATE:
+		    					if (line.Contains(":")) {
+		    						string[] date = line.Replace("(","").Replace(")","").Trim().Split(' ');
+		    						if (date.Length == 2) {
+			    						string[] time = date[1].Replace(":","").Split('-');
+			    						if (time.Length == 2) {
+									    	ics.AppendFormat("DTSTART:{0}T{1}00Z\n", date[0].Replace("/","").Trim(), time[0].Trim());
+									    	ics.AppendFormat("DTEND:{0}T{1}00Z\n", date[0].Replace("/","").Trim(), time[1].Trim());
+									    	htm.AppendFormat("<div class='date-time'>{0} ({1}-{2})</div>", date[0], time[0], time[1]);
+									    }
 								    }
-							    }
-	    					} else {
-	    						string[] date = line.Split('-');
-	    						if (date.Length == 2) {
-							    	ics.AppendFormat("DTSTART;VALUE=DATE:{0}\n", date[0].Replace("/","").Trim());
-							    	ics.AppendFormat("DTEND;VALUE=DATE:{0}\n", date[1].Replace("/","").Trim());
-							    	htm.AppendFormat("<div class='date-time'>{0} - {1}</div>", date[0], date[1]);
-							    }
-	    					}
-					    	state = ICS_ID;
-				    	break;
-	    			case ICS_ID:
-					    	if (!line.StartsWith("---")) {
-					    		ics.AppendFormat("UID:{0}\n", line);
-					    		htm.AppendFormat("UID:{0}\n", line);
-					    		state = ICS_SKIP;
-				    		} else {
+		    					} else {
+		    						string[] date = line.Split('-');
+		    						if (date.Length == 2) {
+								    	ics.AppendFormat("DTSTART;VALUE=DATE:{0}\n", date[0].Replace("/","").Trim());
+								    	ics.AppendFormat("DTEND;VALUE=DATE:{0}\n", date[1].Replace("/","").Trim());
+								    	htm.AppendFormat("<div class='date-time'>{0} - {1}</div>", date[0], date[1]);
+								    }
+		    					}
+						    	state = ICS_ID;
+					    	break;
+		    			case ICS_ID:
+						    	if (!line.StartsWith("---")) {
+						    		ics.AppendFormat("UID:{0}\n", line);
+						    		htm.AppendFormat("UID:{0}\n", line);
+						    		state = ICS_SKIP;
+					    		} else {
+							    	ics.Append("DESCRIPTION:");
+							    	htm.Append("<p>");
+							    	state = ICS_DESC;
+					    		}
+					    	break;
+		    			case ICS_SKIP:
 						    	ics.Append("DESCRIPTION:");
 						    	htm.Append("<p>");
 						    	state = ICS_DESC;
-				    		}
-				    	break;
-	    			case ICS_SKIP:
-					    	ics.Append("DESCRIPTION:");
-					    	htm.Append("<p>");
-					    	state = ICS_DESC;
-				    	break;
-	    			case ICS_DESC:
-				    	if (line.StartsWith("---")) {
-					    	ics.Append("\nTRANSP:OPAQUE\n");
-					    	ics.Append("END:VEVENT\n");
-					    	htm.Append("</p></div>");
-					    	StartIcsEvent(ics, htm);
-				    		state = ICS_TITLE;
-				    	} else {
-					    	ics.Append(line);
-					    	htm.Append(line);
-					    }
-				    	break;
-		    		
-		    	}
-		    }
-		}
-		if (ics.Length > 0) ics.Append("\nTRANSP:OPAQUE\nEND:VEVENT");
-		if (htm.Length > 0) htm.Append("</p></div>");
+					    	break;
+		    			case ICS_DESC:
+					    	if (line.StartsWith("---")) {
+						    	ics.Append("\nTRANSP:OPAQUE\n");
+						    	ics.Append("END:VEVENT\n");
+						    	htm.Append("</p></div>");
+						    	StartIcsEvent(ics, htm);
+					    		state = ICS_TITLE;
+					    	} else {
+						    	ics.Append(line);
+						    	htm.Append(line);
+						    }
+					    	break;
+			    		
+			    	}
+			    }
+			}
 
-		string content = ics.ToString();
-		WriteFile(siteFile, template, content);
+			if (ics.Length > 0) ics.Append("\nTRANSP:OPAQUE\nEND:VEVENT");
+			if (htm.Length > 0) htm.Append("</p></div>");
 
-		HtmlClone(contentFolder, siteFolder, filename, ext, htm);		
+			string content = ics.ToString();
+			WriteFile(siteFile, template, content);
+
+			HtmlClone(contentFolder, siteFolder, filename, ext, htm);		
+		} catch (Exception ex) {
+			Console.WriteLine("Unable to apply template to content file", ex);
+			Console.WriteLine(string.Format("Template: {0}",  templateFile));
+			Console.WriteLine(string.Format("Content:  {0}",  contentFile));
+		}		
 	}
 
 	private static void HtmlClone(string contentFolder, string siteFolder, string filename, string ext, StringBuilder clone) {
@@ -599,64 +633,71 @@ public class Bijou {
 		string contentFile = contentFolder + "/" + filename;
 		string templateFile = GetTemplateFilename(filename, ext);
 		string siteFile = siteFolder + "/index.html";
-		string template = File.ReadAllText(templateFile);
-		string content = ""; //File.ReadAllText(contentFile);
 
-	    StringBuilder sb = new StringBuilder();
-		using (StreamReader sr = new StreamReader(contentFile)) {
-		    string line;
-		    while ((line = sr.ReadLine()) != null) {
-				//if (Debug) Console.WriteLine(line);
+		try {
+			string template = File.ReadAllText(templateFile);
+			string content = ""; //File.ReadAllText(contentFile);
 
-		    	if (line.Trim() == "") {
-		    		continue;
-		    	} else if (line.StartsWith("<")) {
-			    	sb.Append(line); // It's HTML
-		    	} else if (line.StartsWith("######")) {
-		    		line = line.Replace("######", "").Trim();
-			    	sb.AppendFormat("<h6>{0}</h6>", line);
-		    	} else if (line.StartsWith("#####")) {
-		    		line = line.Replace("#####", "").Trim();
-			    	sb.AppendFormat("<h5>{0}</h5>", line);
-		    	} else if (line.StartsWith("####")) {
-		    		line = line.Replace("####", "").Trim();
-			    	sb.AppendFormat("<h4>{0}</h4>", line);
-		    	} else if (line.StartsWith("###")) {
-		    		line = line.Replace("###", "").Trim();
-			    	sb.AppendFormat("<h3>{0}</h3>", line);
-		    	} else if (line.StartsWith("##")) {
-		    		line = line.Replace("##", "").Trim();
-			    	sb.AppendFormat("<h2>{0}</h2>", line);
-		    	} else if (line.StartsWith("#")) {
-		    		line = line.Replace("#", "").Trim();
-			    	sb.AppendFormat("<h1>{0}</h1>", line);
-		    	} else if (line.StartsWith(">")) {
-		    		ProcessBlock(sr, sb, ">", "blockquote", "", line);
-		    	} else if (line.StartsWith("`")) {
-		    		ProcessBlock(sr, sb, "`", "code", "", line);
-		    	} else if (line.StartsWith("+++") || line.StartsWith("***") || line.StartsWith("---") ) {
-		    		sb.Append("<hr/>");
-		    	} else if (line.StartsWith("+")) {
-		    		ProcessBlock(sr, sb, "+", "ul", "li", line);
-		    	} else if (line.StartsWith("-")) {
-		    		ProcessBlock(sr, sb, "-", "ul", "li", line);
-		    	} else if (line.StartsWith("*")) {
-		    		ProcessBlock(sr, sb, "*", "ul", "li", line);
-		    	} else if (line.StartsWith("1.")) {
-		    		ProcessBlock(sr, sb, "1.", "ol", "li", line);
-		    	} else if (line.StartsWith("|")) {
-		    		ProcessTable(sr, sb, "|", line);
-		    	} else if (line.StartsWith("[")) {
-		    		ProcessAnchor(sr, sb, line);
-		    	} else if (line.StartsWith("!")) {
-		    		ProcessImage(sr, sb, line);
-			    } else {
-		    		ProcessBlock(sr, sb, " ", "p", "", line);
+		    StringBuilder sb = new StringBuilder();
+			using (StreamReader sr = new StreamReader(contentFile)) {
+			    string line;
+			    while ((line = sr.ReadLine()) != null) {
+					//if (Debug) Console.WriteLine(line);
+
+			    	if (line.Trim() == "") {
+			    		continue;
+			    	} else if (line.StartsWith("<")) {
+				    	sb.Append(line); // It's HTML
+			    	} else if (line.StartsWith("######")) {
+			    		line = line.Replace("######", "").Trim();
+				    	sb.AppendFormat("<h6>{0}</h6>", line);
+			    	} else if (line.StartsWith("#####")) {
+			    		line = line.Replace("#####", "").Trim();
+				    	sb.AppendFormat("<h5>{0}</h5>", line);
+			    	} else if (line.StartsWith("####")) {
+			    		line = line.Replace("####", "").Trim();
+				    	sb.AppendFormat("<h4>{0}</h4>", line);
+			    	} else if (line.StartsWith("###")) {
+			    		line = line.Replace("###", "").Trim();
+				    	sb.AppendFormat("<h3>{0}</h3>", line);
+			    	} else if (line.StartsWith("##")) {
+			    		line = line.Replace("##", "").Trim();
+				    	sb.AppendFormat("<h2>{0}</h2>", line);
+			    	} else if (line.StartsWith("#")) {
+			    		line = line.Replace("#", "").Trim();
+				    	sb.AppendFormat("<h1>{0}</h1>", line);
+			    	} else if (line.StartsWith(">")) {
+			    		ProcessBlock(sr, sb, ">", "blockquote", "", line);
+			    	} else if (line.StartsWith("`")) {
+			    		ProcessBlock(sr, sb, "`", "code", "", line);
+			    	} else if (line.StartsWith("+++") || line.StartsWith("***") || line.StartsWith("---") ) {
+			    		sb.Append("<hr/>");
+			    	} else if (line.StartsWith("+")) {
+			    		ProcessBlock(sr, sb, "+", "ul", "li", line);
+			    	} else if (line.StartsWith("-")) {
+			    		ProcessBlock(sr, sb, "-", "ul", "li", line);
+			    	} else if (line.StartsWith("*")) {
+			    		ProcessBlock(sr, sb, "*", "ul", "li", line);
+			    	} else if (line.StartsWith("1.")) {
+			    		ProcessBlock(sr, sb, "1.", "ol", "li", line);
+			    	} else if (line.StartsWith("|")) {
+			    		ProcessTable(sr, sb, "|", line);
+			    	} else if (line.StartsWith("[")) {
+			    		ProcessAnchor(sr, sb, line);
+			    	} else if (line.StartsWith("!")) {
+			    		ProcessImage(sr, sb, line);
+				    } else {
+			    		ProcessBlock(sr, sb, " ", "p", "", line);
+				    }
 			    }
-		    }
-		    content = sb.ToString();
+			    content = sb.ToString();
+			}
+			WriteFile(siteFile, template, content);
+		} catch (Exception ex) {
+			Console.WriteLine("Unable to apply template to content file", ex);
+			Console.WriteLine(string.Format("Template: {0}",  templateFile));
+			Console.WriteLine(string.Format("Content:  {0}",  contentFile));
 		}
-		WriteFile(siteFile, template, content);
 	}
 
 	private static void ApplyTemplate(string contentFolder, string siteFolder, FileInfo fi) {
@@ -735,12 +776,16 @@ public class Bijou {
 	}
 
 	private static void ProcessSearchFile(string contentFolder, string siteFolder, string filename, string ext) {
-		string contentFile = contentFolder + "/" + filename;
-		string templateFile = GetTemplateFilename(filename, ext);
-		string siteFile = siteFolder + "/index.html";
-		string template = File.ReadAllText(templateFile);
-		string content = File.ReadAllText(contentFile);
-		WriteFile(siteFile, template, content);
+		try {
+			string contentFile = contentFolder + "/" + filename;
+			string templateFile = GetTemplateFilename(filename, ext);
+			string siteFile = siteFolder + "/index.html";
+			string template = File.ReadAllText(templateFile);
+			string content = File.ReadAllText(contentFile);
+			WriteFile(siteFile, template, content);
+		} catch (Exception ex) {
+			Console.WriteLine("Unexpected exception processing the Search file.\n" + ex);
+		}
 	}
 
 	public static void CreateSite() {
@@ -759,7 +804,7 @@ public class Bijou {
 
 		ProcessFolder(Folder+"/content", siteFolder);
 
-		if (SearchData.Length >0) {
+		if (!string.IsNullOrEmpty(SearchContentFolder) && (SearchData.Length >0)) {
 			ProcessSearchFile(SearchContentFolder, SearchSiteFolder, SearchTemplate, SearchExtension);
 		}
 	}
