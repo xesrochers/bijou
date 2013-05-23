@@ -5,19 +5,16 @@
             <li>content/
             	<ul>
             		<li>1.Menu1/  - Folders prefixed with numbers create the navigation hierarchy
-            			<ul><li>default.html - Filename that matches a template file and contains the body or data elements. </li></ul>
+            			<ul><li>foo.html - Matches to the generic HTML template.</li></ul>
             		</li>
             		<li>2.Menu2/  - Ditto
-            			<ul><li>default.md - (example of a Markdown template) </li></ul>
+                              <ul><li>bar.md - Matches to the generic MARKDOWN template.</li></ul>
             		</li>
                         <li>3.Menu3/  - Ditto
-                              <ul><li>default.csv - (example of a CSV template) </li></ul>
-                        </li>
-                        <li>4.Menu4/  - Ditto
-                              <ul><li>default.xml - (example of a XML/XSLT template) </li></ul>
+                              <ul><li>other.html - Matches to the 'other.html' template (see templates below) </li></ul>
                         </li>
                         <li>0.Invisible/ - Folders prefixed with '0.' are processed by the template engine but are excluded from the navigation hierarchy.
-                              <ul><li>default.rss - (example of a RSS feed template). </li></ul>
+                              <ul><li>default.rss - Matches to the generic RSS template.. </li></ul>
                         </li>
             		<li>images/  - Folders NOT prefixed with numbers are simply copied (and not processed via templates).
             			<ul><li>logo.png - Files are simply copied.</li></ul>
@@ -30,14 +27,15 @@
             		</li>
             	</ul>
             </li>
-            <li>templates/
+            <li>templates/ - Template files contain common markup repeated through the site and substitution placeholders for menu and content items.
             	<ul>
-            		<li>default.html - HTML type template (simple substitution of body content)</li>
-            		<li>default.csv - CSV type template (converts the CSV file to a table)</li>
-            		<li>default.xml - XML type template (applies a XSLT template)</li>
-            		<li>default.md - Markdown type template (incomplete Markdown implementation)</li>
-                        <li>default.rss - RSS Feed type template (also produces an HTML version for the site)</li>
-                        <li>default.ics - iCalendar type template (also produces an HTML version for the site)</li>
+            		<li>default.html - HTML generic template (simple substitution of body content)</li>
+            		<li>default.csv - CSV generic template (converts the CSV file to a table)</li>
+            		<li>default.xml - XML generic template (applies a XSLT template)</li>
+            		<li>default.md - Markdown generic template (incomplete Markdown implementation)</li>
+                        <li>default.rss - RSS Feed generic template (also produces an HTML version for the site)</li>
+                        <li>default.ics - iCalendar generic template (also produces an HTML version for the site)</li>
+                        <li>other.html - Exact filename template match for those exeptions where the default.??? template is not applicable. Any filename can be used as long as it matches the filename in the content tree.</li>
             	</ul>
             </li>
             <li>site/
