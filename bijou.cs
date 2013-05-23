@@ -28,6 +28,7 @@ public class Bijou {
 	public static string Children = "";
 	public static string CurrentPageUrl = "/";
 	public static string[] TemplateTypes = null;
+	public static ArrayList Path = new ArrayList();
 	private static int Level = -1;
 
 	private static StringBuilder SearchData = new StringBuilder();
@@ -129,9 +130,27 @@ public class Bijou {
 	}
 
 
+	private static string BuildBreadcrumb() {
+		StringBuilder result = new StringBuilder();
+		if (Path.Count > 1) {
+			result.Append("<ul>");
+			foreach(string item in Path) {
+				string[] tokens = item.Split('/');
+				string last = (tokens.Length>0) ? tokens[tokens.Length-1] : "";
+				string displayName = ParseDisplayName(last); 
+				if (!string.IsNullOrEmpty(displayName)) {
+					result.AppendFormat("<li><a href='{0}'>{1}</a></li>", item, displayName);
+				}
+			}
+			result.Append("</ul>");
+		}
+
+		return result.ToString();
+	}
 
 	private static void WriteFile(string filename, string template, string content) {
 
+		Breadcrumb = BuildBreadcrumb();
 		using (StreamWriter sw = File.CreateText(filename)) {
 			string text = "";
 			DateTime now = DateTime.Now;
@@ -722,6 +741,7 @@ public class Bijou {
 
 	private static void ProcessFolder(string contentFolder, string siteFolder) {
 		DirectoryInfo folder = new DirectoryInfo(contentFolder); 
+		Path.Add(siteFolder.Replace("."+SiteFolder, WebRoot));
 		Level++;
 		foreach(FileInfo fi in folder.GetFiles("*")) {
 			string templateFile = GetTemplateFilename(fi.Name, fi.Extension);
@@ -752,6 +772,8 @@ public class Bijou {
 			ProcessFolder(childContent, childSite);
 		}
 		Level--;
+		Path.RemoveAt(Path.Count-1);
+
 	}
 
 	private static void AppendSearchData(string contentFolder, string siteFolder, string filename, string ext) {
