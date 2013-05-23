@@ -5,7 +5,7 @@ bijou.exe: bijou.cs
 	gmcs bijou.cs
 
 bijou: 
-	mono bijou.exe -m
+	mono bijou.exe -m -v
 
 videotron:
 	mono bijou.exe -m -r:roche/Bijou
