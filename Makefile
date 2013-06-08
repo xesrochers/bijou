@@ -1,16 +1,17 @@
 #########################################
 # Makefile 
 #########################################
-bijou.exe: bijou.cs
-	gmcs bijou.cs
+cs = src/Bijou.cs src/BaseProcessor.cs src/HtmlProcessor.cs src/CsvProcessor.cs src/XmlProcessor.cs src/MdProcessor.cs src/RssProcessor.cs src/IcsProcessor.cs src/SearchProcessor.cs src/SubstitutionEngine.cs 
+bijou.exe: $(cs)
+	gmcs $(cs)
 
 bijou: 
-	mono bijou.exe -m -v
+	mono src/Bijou.exe -m -v
 
 videotron:
-	mono bijou.exe -m -r:roche/Bijou
+	mono src/Bijou.exe -m -r:roche/Bijou
 
 clean:
-	rm bijou.exe
+	rm src/Bijou.exe
 
 
