@@ -14,7 +14,6 @@ using System.Text.RegularExpressions;
  * </summary>
  *************************************************/
 public class Bijou { 
-
 	public static bool Debug = false;
 	public static bool Index = false;
 	public static bool Verbose = false;

@@ -2,7 +2,7 @@
 # Makefile 
 #########################################
 cs = src/Bijou.cs src/BaseProcessor.cs src/HtmlProcessor.cs src/CsvProcessor.cs src/XmlProcessor.cs src/MdProcessor.cs src/RssProcessor.cs src/IcsProcessor.cs src/SearchProcessor.cs src/SubstitutionEngine.cs 
-bijou.exe: $(cs)
+bin/bijou.exe: $(cs)
 	gmcs $(cs)
 
 bijou: 
