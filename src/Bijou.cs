@@ -196,8 +196,8 @@ public class Bijou {
 	    }
 	} 
 
-	private static XsltArgumentList BuildXsltArgumentList() {
-		SubstitutionEngine se = GetSubstitutionEngine("","");
+	private static XsltArgumentList BuildXsltArgumentList(string title) {
+		SubstitutionEngine se = GetSubstitutionEngine(title,"");
 		return se.ToXsltArgumentList();
 	}
 
@@ -324,8 +324,9 @@ public class Bijou {
 			WriteFile(processor.SiteFile, processor.Template, processor.Content);
 			TagSearchFile(processor.Content, contentFolder, siteFolder, fi);
 		} else if (fi.Extension == ".xml") {
+			string title = ParsePageTitle(siteFolder+"/bogus.xxx");
 			XmlProcessor processor = new XmlProcessor();
-			processor.XslArgs = BuildXsltArgumentList();
+			processor.XslArgs = BuildXsltArgumentList(title);
 			processor.Consume(contentFolder, siteFolder, fi.Name, fi.Extension);
 			WriteFile(processor.SiteFile, processor.Content);
 		} else if (fi.Extension == ".csv") {

@@ -11,7 +11,7 @@
 <xsl:template match="/">
 <html>
 	<head>
-		<title>Bijou - {$title}</title>
+		<title>Bijou - <xsl:value-of select="$title" disable-output-escaping="yes"/></title>
         <link href='{$root}/styles/font-awesome.css' rel='stylesheet' />		
 		<link href='{$root}/styles/superfish.css' rel='stylesheet' />
         <link href='{$root}/styles/style.css' rel='stylesheet' />		
