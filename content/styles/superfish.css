@@ -90,7 +90,7 @@
 	height: 10px;
 	text-indent: -999em;
 	overflow: hidden;
-	background: url(../images/arrows-ffffff.png) no-repeat 0 -100px;
+	background: url(../images/superfish.png) no-repeat 0 -100px;
 }
 
 li:hover > a .sf-sub-indicator,
