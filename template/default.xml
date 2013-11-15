@@ -3,6 +3,7 @@
 <xsl:output method="html" indent="yes" />
 
 <xsl:param name="topnav" />
+<xsl:param name="title" />
 <xsl:param name="root" />
 <xsl:param name="breadcrumb" />
 <xsl:param name="children" />
@@ -10,6 +11,7 @@
 <xsl:template match="/">
 <html>
 	<head>
+		<title>Bijou - {$title}</title>
         <link href='{$root}/styles/font-awesome.css' rel='stylesheet' />		
 		<link href='{$root}/styles/superfish.css' rel='stylesheet' />
         <link href='{$root}/styles/style.css' rel='stylesheet' />		

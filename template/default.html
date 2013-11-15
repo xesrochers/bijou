@@ -1,5 +1,6 @@
 <html>
 	<head>
+		<title>Bijou - {$title}</title>
         <link href='{$root}/styles/font-awesome.css' rel='stylesheet' />		
 		<link href='{$root}/styles/superfish.css' rel='stylesheet' />
         <link href='{$root}/styles/style.css' rel='stylesheet' />		

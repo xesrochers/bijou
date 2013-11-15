@@ -70,6 +70,7 @@ public class Bijou {
 		return result;
 	}
 
+
 	public static string ParseDisplayName(string text) {
 		string result = text;
 
@@ -82,6 +83,18 @@ public class Bijou {
 			result = sb.ToString();
 		}
 		return result;
+	}
+
+	public static string ParsePageTitle(string filename) {
+		string result = filename;
+		if (!string.IsNullOrEmpty(filename)) {
+			string[] tokens = filename.Split('/');
+			if (tokens.Length >= 2) {
+				result = tokens[tokens.Length-2];
+			}
+		}
+		if (result == "site") result = "";
+		return ParseDisplayName(result);
 	}
 
 	public static void CreateScafolding(){
@@ -154,11 +167,12 @@ public class Bijou {
 	} 
 
 
-	private static SubstitutionEngine GetSubstitutionEngine(string content) {
+	private static SubstitutionEngine GetSubstitutionEngine(string title, string content) {
 		SubstitutionEngine result = new SubstitutionEngine();
 		Breadcrumb = BuildBreadcrumb();
 		DateTime now = DateTime.Now;
 		result.Add("content", content);
+		result.Add("title", title);
 		result.Add("root", BuildRootPath(Level));
 		result.Add("topnav", TopNav);
 		result.Add("breadcrumb", Breadcrumb);
@@ -171,8 +185,9 @@ public class Bijou {
 	}
 
 	private static void WriteFile(string filename, string template, string content) {
+		string title = ParsePageTitle(filename);
 		using (StreamWriter sw = File.CreateText(filename)) {
-			SubstitutionEngine se = GetSubstitutionEngine(content);
+			SubstitutionEngine se = GetSubstitutionEngine(title, content);
 			if (SearchData.Length > 0) {
 				se.Add("search", SearchData.ToString());
 			}
@@ -182,7 +197,7 @@ public class Bijou {
 	} 
 
 	private static XsltArgumentList BuildXsltArgumentList() {
-		SubstitutionEngine se = GetSubstitutionEngine("");
+		SubstitutionEngine se = GetSubstitutionEngine("","");
 		return se.ToXsltArgumentList();
 	}
 
