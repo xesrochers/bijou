@@ -433,7 +433,7 @@ public class Bijou {
 
 
 	public static void Usage(bool detailed) {
-		Console.WriteLine("bijou [option]");
+		Console.WriteLine("bijou [option] ");
 		Console.WriteLine("  -c to clear out the existing 'site' folder");
 		Console.WriteLine("  -i to activate index.html based urls (NOT IMPLEMENTED)");
 		Console.WriteLine("  -m to inject the home icon");
