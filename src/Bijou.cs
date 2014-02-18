@@ -17,6 +17,7 @@ public class Bijou {
 	public static bool Debug = false;
 	public static bool Index = false;
 	public static bool Verbose = false;
+	public static bool Watcher = false;
 	public static bool Home = false;
 	// public static bool HasSearch = false;
 	public static string Folder = ".";
@@ -440,11 +441,11 @@ public class Bijou {
 		// Console.WriteLine("  -s to inject the search page");
 		Console.WriteLine("  -o:path to change the output folder");
 		Console.WriteLine("  -r:path to change the root folder");
+		Console.WriteLine("  -w to start the file system watcher");
 		Console.WriteLine("  -v verbose");
 		Console.WriteLine("  -d debug");
 		if (detailed) {
 			Console.WriteLine("Bijou walks through the content folder and creates the html files based on the given template.");
-
 		}
 	}
 
@@ -457,6 +458,8 @@ public class Bijou {
 						Usage(true);
 					} else if (arg == "-v") {
 						Bijou.Verbose = true;
+					} else if (arg == "-w") {
+						Bijou.Watcher = true;
 					} else if (arg == "-d") {
 						Bijou.Debug = true;
 					} else if (arg == "-i") {
@@ -493,6 +496,12 @@ public class Bijou {
             if (scalfolding) CreateScafolding();
             
 			CreateSite();
+
+			if (Bijou.Watcher) {
+				//Bijou.StartWatcher();
+				Watcher watcher = new Watcher();
+				watcher.Start();
+			}
 
 		} catch (Exception e) {
 		    Console.WriteLine(e.ToString());
