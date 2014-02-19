@@ -39,4 +39,21 @@ public class SubstitutionEngine {
 	}
 
 
+	public static SubstitutionEngine GetSubstitutionEngine(string title, string content) {
+		SubstitutionEngine result = new SubstitutionEngine();
+		Bijou.Breadcrumb = MenuBuilder.BuildBreadcrumb();
+		DateTime now = DateTime.Now;
+		result.Add("content", content);
+		result.Add("title", title);
+		result.Add("root", BijouUtils.BuildRootPath(Bijou.Level));
+		result.Add("topnav", Bijou.TopNav);
+		result.Add("breadcrumb", Bijou.Breadcrumb);
+		result.Add("children", Bijou.Children);
+		result.Add("url", Bijou.CurrentPageUrl);
+		result.Add("date", string.Format("{0:yyyy/MM/dd}", now ));
+		result.Add("time", string.Format("{0:hh}:{1:mm}", now, now ));
+		result.Add("gmt", string.Format("{0:yyyyMMdd}T{1:hhmmss}Z", now, now));
+		return result;
+	}
+
 }

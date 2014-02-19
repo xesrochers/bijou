@@ -4,7 +4,6 @@ using System.Text;
 using System.Xml;
 using System.Xml.Xsl;
 using System.Collections;
-using System.Text.RegularExpressions;
 
 
 /**************************************************
@@ -30,12 +29,6 @@ public class Bijou {
 	public static string[] TemplateTypes = null;
 	public static ArrayList Path = new ArrayList();
 	public static int Level = -1;
-
-	private static StringBuilder SearchData = new StringBuilder();
-	private static string SearchContentFolder = null;
-	private static string SearchSiteFolder = null;
-	private static string SearchTemplate = null;
-	private static string SearchExtension = null;
 
 	public static void CreateFolder(string folder){
 		if(!Directory.Exists(folder)) {
@@ -63,113 +56,29 @@ public class Bijou {
 		return (string[]) result.ToArray( typeof( string ) );
 	}
 
-
-	private static string BuildBreadcrumb() {
-		StringBuilder result = new StringBuilder();
-		if (Path.Count > 1) {
-			result.Append("<ul>");
-			foreach(string item in Path) {
-				string[] tokens = item.Split('/');
-				string last = (tokens.Length>0) ? tokens[tokens.Length-1] : "";
-				string displayName = BijouUtils.ParseDisplayName(last); 
-				if (!string.IsNullOrEmpty(displayName)) {
-					result.AppendFormat("<li><a href='{0}'>{1}</a></li>", item, displayName);
-				}
-			}
-			result.Append("</ul>");
-		}
-
-		return result.ToString();
-	}
-
 	private static void WriteFile(string filename, string content) {
 		using (StreamWriter sw = File.CreateText(filename)) {
 	        sw.WriteLine(content);
 	    }
 	} 
 
-	private static SubstitutionEngine GetSubstitutionEngine(string title, string content) {
-		SubstitutionEngine result = new SubstitutionEngine();
-		Breadcrumb = BuildBreadcrumb();
-		DateTime now = DateTime.Now;
-		result.Add("content", content);
-		result.Add("title", title);
-		result.Add("root", BijouUtils.BuildRootPath(Level));
-		result.Add("topnav", TopNav);
-		result.Add("breadcrumb", Breadcrumb);
-		result.Add("children", Children);
-		result.Add("url", CurrentPageUrl);
-		result.Add("date", string.Format("{0:yyyy/MM/dd}", now ));
-		result.Add("time", string.Format("{0:hh}:{1:mm}", now, now ));
-		result.Add("gmt", string.Format("{0:yyyyMMdd}T{1:hhmmss}Z", now, now));
-		return result;
-	}
-
 	private static void WriteFile(string filename, string template, string content) {
 		string title = BijouUtils.ParsePageTitle(filename);
 		using (StreamWriter sw = File.CreateText(filename)) {
-			SubstitutionEngine se = GetSubstitutionEngine(title, content);
-			if (SearchData.Length > 0) {
-				se.Add("search", SearchData.ToString());
+			SubstitutionEngine se = SubstitutionEngine.GetSubstitutionEngine(title, content);
+			if (SearchProcessor.SearchData.Length > 0) {
+				se.Add("search", SearchProcessor.SearchData.ToString());
 			}
 			string text = se.Substitute(template);
 	        sw.WriteLine(text);
 	    }
 	} 
 
-	private static XsltArgumentList BuildXsltArgumentList(string title) {
-		SubstitutionEngine se = GetSubstitutionEngine(title,"");
-		return se.ToXsltArgumentList();
-	}
-
-	private static string BuildChildLinks(DirectoryInfo folder) {
-		StringBuilder result = new StringBuilder();
-		DirectoryInfo[] children = folder.GetDirectories();
-		if ((children !=null) && (children.Length > 0)) {
-
-			result.Append("<ul>");
-			foreach(DirectoryInfo di in children) {
-				if (BijouUtils.IsNavigation(di.Name)  && !BijouUtils.IsInvisible(di.Name)){
-					string currentPath =  folder.Name + "/" + di.Name;
-
-					//string stripped = StripPrefix(di.Name, '.');
-					//string displayName = ParseDisplayName(stripped); 
-					//string strippedPath = StripPrefix(currentPath);
-					if (Debug) Console.WriteLine("BuildChildLinks "+ currentPath);
-					result.Append("<li>");
-					BijouUtils.BuildLink(result, currentPath, di);
-					/*if (Index) {
-						result.AppendFormat("<a href='{0}/index.html'>{1}</a>", strippedPath, displayName);
-					} else {
-						result.AppendFormat("<a href='{0}'>{1}</a>", strippedPath, displayName);
-					}*/
-					result.Append("</li>");
-				}
-			}
-			result.Append("</ul>");
-		}
-		return result.ToString();
-	}
-
-
 	private static void HtmlClone(string contentFolder, string siteFolder, string filename, string ext, string content) {
 		string templateFile = BaseProcessor.GetTemplateFilename(filename.Replace(ext, ".html"), ".html");
 		string siteFile = siteFolder + "/index.html";
 		string template = BijouUtils.SharedRead(templateFile);
-
 		WriteFile(siteFile, template, content);
-	}
-
-	/*********************************************
-	 * Check to see if itls the seartch file. 
-	 *********************************************/
-	private static void TagSearchFile(string content,string contentFolder, string siteFolder, FileInfo fi) {
-		if (!string.IsNullOrEmpty(content) && content.Contains("{$search}")) {
-			SearchContentFolder = contentFolder;
-			SearchSiteFolder = siteFolder;
-			SearchTemplate = fi.Name;
-			SearchExtension = fi.Extension;
-		}
 	}
 
 
@@ -180,11 +89,11 @@ public class Bijou {
 			HtmlProcessor processor = new HtmlProcessor();
 			processor.Consume(contentFolder, siteFolder, fi.Name, fi.Extension);
 			WriteFile(processor.SiteFile, processor.Template, processor.Content);
-			TagSearchFile(processor.Content, contentFolder, siteFolder, fi);
+			SearchProcessor.TagSearchFile(processor.Content, contentFolder, siteFolder, fi);
 		} else if (fi.Extension == ".xml") {
 			string title = BijouUtils.ParsePageTitle(siteFolder+"/bogus.xxx");
 			XmlProcessor processor = new XmlProcessor();
-			processor.XslArgs = BuildXsltArgumentList(title);
+			processor.XslArgs = XmlProcessor.BuildXsltArgumentList(title);
 			processor.Consume(contentFolder, siteFolder, fi.Name, fi.Extension);
 			WriteFile(processor.SiteFile, processor.Content);
 		} else if (fi.Extension == ".csv") {
@@ -217,12 +126,12 @@ public class Bijou {
 
 			if (!string.IsNullOrEmpty(templateFile)) {
 
-				Children = BuildChildLinks(folder);
+				Children = MenuBuilder.BuildChildLinks(folder);
 				CurrentPageUrl = folder.Name + "/";
 
 				ApplyTemplate(contentFolder, siteFolder, fi);
 
-				if (!BijouUtils.IsInvisible(folder.Name)) AppendSearchData(contentFolder, siteFolder, fi.Name, fi.Extension);
+				if (!BijouUtils.IsInvisible(folder.Name)) SearchProcessor.AppendSearchData(contentFolder, siteFolder, fi.Name, fi.Extension);
 
 			} else {
 				string contentFile = contentFolder + "/" + fi.Name;
@@ -245,27 +154,6 @@ public class Bijou {
 
 	}
 
-	private static void AppendSearchData(string contentFolder, string siteFolder, string filename, string ext) {
-		string contentFile = contentFolder + "/" + filename;
-		//string templateFile = BuildTemplateFilename(filename, ext);
-		//string siteFile = siteFolder + "/index.html";
-		//string template = BijouUtils.SharedRead(templateFile);
-		string content = BijouUtils.SharedRead(contentFile);
-
-		siteFolder = siteFolder.Replace("."+SiteFolder, WebRoot); 
-		string displayName = siteFolder;
-		string cssClass = "";		
-		if (string.IsNullOrEmpty(siteFolder)) {
- 			siteFolder = "/";
- 			displayName = "";
- 			cssClass = " class='icon-home'";
-		}
-
-		content = Regex.Replace(content, @"<[^>]*>", String.Empty); // Remove HTML tags
-
-		SearchData.AppendFormat("<li><a href='{0}' {1}>{2}</a><span class='hidden'>{3}</span></li>", siteFolder, cssClass, displayName, content);
-	}
-
 	public static void CreateSite() {
 		string siteFolder = (SiteFolder == "/site") ? Folder+"/site" : SiteFolder;
 
@@ -282,9 +170,9 @@ public class Bijou {
 
 		ProcessFolder(Folder+"/content", siteFolder);
 
-		if (!string.IsNullOrEmpty(SearchContentFolder) && (SearchData.Length >0)) {
+		if (SearchProcessor.HasSearchData()) {
 			SearchProcessor processor = new SearchProcessor();
-			processor.Consume(SearchContentFolder, SearchSiteFolder, SearchTemplate, SearchExtension);
+			processor.Consume();
 			WriteFile(processor.SiteFile, processor.Template, processor.Content);
 		}
 	}

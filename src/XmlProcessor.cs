@@ -29,10 +29,13 @@ public class XmlProcessor : BaseProcessor {
 			  Content = sw.ToString();
 			}
 		} catch (Exception ex) {
-			Console.WriteLine("Unable to apply template to content file", ex);
-			Console.WriteLine(string.Format("Template: {0}",  templateFile));
-			Console.WriteLine(string.Format("Content:  {0}",  contentFile));
+			ReportError(templateFile, contentFile, ex);
 		}
-
 	}
+
+	public static XsltArgumentList BuildXsltArgumentList(string title) {
+		SubstitutionEngine se = SubstitutionEngine.GetSubstitutionEngine(title,"");
+		return se.ToXsltArgumentList();
+	}
+
 }

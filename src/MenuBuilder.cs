@@ -48,6 +48,55 @@ public class MenuBuilder  {
 		Bijou.Level--;
 	}
 
+
+	public static string BuildBreadcrumb() {
+		StringBuilder result = new StringBuilder();
+		if (Bijou.Path.Count > 1) {
+			result.Append("<ul>");
+			foreach(string item in Bijou.Path) {
+				string[] tokens = item.Split('/');
+				string last = (tokens.Length>0) ? tokens[tokens.Length-1] : "";
+				string displayName = BijouUtils.ParseDisplayName(last); 
+				if (!string.IsNullOrEmpty(displayName)) {
+					result.AppendFormat("<li><a href='{0}'>{1}</a></li>", item, displayName);
+				}
+			}
+			result.Append("</ul>");
+		}
+
+		return result.ToString();
+	}
+
+
+	public static string BuildChildLinks(DirectoryInfo folder) {
+		StringBuilder result = new StringBuilder();
+		DirectoryInfo[] children = folder.GetDirectories();
+		if ((children !=null) && (children.Length > 0)) {
+
+			result.Append("<ul>");
+			foreach(DirectoryInfo di in children) {
+				if (BijouUtils.IsNavigation(di.Name)  && !BijouUtils.IsInvisible(di.Name)){
+					string currentPath =  folder.Name + "/" + di.Name;
+
+					//string stripped = StripPrefix(di.Name, '.');
+					//string displayName = ParseDisplayName(stripped); 
+					//string strippedPath = StripPrefix(currentPath);
+					if (Bijou.Debug) Console.WriteLine("BuildChildLinks "+ currentPath);
+					result.Append("<li>");
+					BijouUtils.BuildLink(result, currentPath, di);
+					/*if (Index) {
+						result.AppendFormat("<a href='{0}/index.html'>{1}</a>", strippedPath, displayName);
+					} else {
+						result.AppendFormat("<a href='{0}'>{1}</a>", strippedPath, displayName);
+					}*/
+					result.Append("</li>");
+				}
+			}
+			result.Append("</ul>");
+		}
+		return result.ToString();
+	}
+
 }
 
 
