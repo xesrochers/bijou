@@ -12,7 +12,11 @@ public class SearchProcessor : BaseProcessor {
 		string contentFile = contentFolder + "/" + filename;
 		string templateFile = GetTemplateFilename(filename, ext);
 		SiteFile = siteFolder + "/index.html";
-		Template = File.ReadAllText(templateFile);
-		Content = File.ReadAllText(contentFile);
+		try {
+			Template = BijouUtils.SharedRead(templateFile);
+			Content = BijouUtils.SharedRead(contentFile);
+		} catch (Exception ex) {
+			ReportError(templateFile, contentFile, ex);
+		}
 	}
 }

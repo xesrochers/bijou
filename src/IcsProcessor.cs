@@ -37,7 +37,7 @@ public class IcsProcessor : BaseProcessor {
 		SiteFile = siteFolder + "/index.ics";
 
 		try {
-			Template = File.ReadAllText(templateFile);
+			Template = BijouUtils.SharedRead(templateFile);
 		    StringBuilder ics = new StringBuilder();
 		    StringBuilder htm = new StringBuilder();
 			using (StreamReader sr = new StreamReader(contentFile)) {
@@ -121,9 +121,7 @@ public class IcsProcessor : BaseProcessor {
 			Content = ics.ToString();
 			Clone = htm.ToString();
 		} catch (Exception ex) {
-			Console.WriteLine("Unable to apply template to content file", ex);
-			Console.WriteLine(string.Format("Template: {0}",  templateFile));
-			Console.WriteLine(string.Format("Content:  {0}",  contentFile));
+			ReportError(templateFile, contentFile, ex);
 		}		
 	}
 }

@@ -22,7 +22,7 @@ public class RssProcessor : BaseProcessor {
 		SiteFile = siteFolder + "/index.rss";
 
 		try {
-			Template = File.ReadAllText(templateFile);
+			Template = BijouUtils.SharedRead(templateFile);
 		    StringBuilder rss = new StringBuilder();
 		    StringBuilder htm = new StringBuilder();
 		    //StringBuilder js = new StringBuilder();
@@ -71,9 +71,7 @@ public class RssProcessor : BaseProcessor {
 			Content = rss.ToString();
 			Clone   = htm.ToString();
 		} catch (Exception ex) {
-			Console.WriteLine("Unable to apply template to content file", ex);
-			Console.WriteLine(string.Format("Template: {0}",  templateFile));
-			Console.WriteLine(string.Format("Content:  {0}",  contentFile));
+			ReportError(templateFile, contentFile, ex);
 		}
 	}
 }

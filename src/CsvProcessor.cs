@@ -15,7 +15,7 @@ public class CsvProcessor : BaseProcessor {
 		string templateFile = GetTemplateFilename(filename, ext);
 		SiteFile = siteFolder + "/index.html";
 		try {
-			Template = File.ReadAllText(templateFile);
+			Template = BijouUtils.SharedRead(templateFile);
 		    StringBuilder sb = new StringBuilder();
 			using (StreamReader sr = new StreamReader(contentFile)) {
 			    string line;
@@ -39,9 +39,7 @@ public class CsvProcessor : BaseProcessor {
 			}
 			Content = sb.ToString();
 		} catch (Exception ex) {
-			Console.WriteLine("Unable to apply template to content file", ex);
-			Console.WriteLine(string.Format("Template: {0}",  templateFile));
-			Console.WriteLine(string.Format("Content:  {0}",  contentFile));
+			ReportError(templateFile, contentFile, ex);
 		}
 
 	}

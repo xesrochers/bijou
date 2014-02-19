@@ -24,7 +24,7 @@ public class Watcher {
         //watch.NotifyFilter = /*NotifyFilters.LastAccess | */ NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
         // Only watch text files. 
         //watch.Filter = "*.txt"; 
-
+        watcher.IncludeSubdirectories = true;
         watcher.Changed += new FileSystemEventHandler(OnChanged);
         watcher.Created += new FileSystemEventHandler(OnChanged);
         watcher.Deleted += new FileSystemEventHandler(OnChanged);
@@ -33,6 +33,7 @@ public class Watcher {
     }
 
     private void OnChanged(object source, FileSystemEventArgs e) {
+        Console.WriteLine(e.FullPath + " " + e.ChangeType);
         Bijou.CreateSite();
     }
 

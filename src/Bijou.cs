@@ -298,7 +298,7 @@ public class Bijou {
 	private static void HtmlClone(string contentFolder, string siteFolder, string filename, string ext, string content) {
 		string templateFile = BaseProcessor.GetTemplateFilename(filename.Replace(ext, ".html"), ".html");
 		string siteFile = siteFolder + "/index.html";
-		string template = File.ReadAllText(templateFile);
+		string template = BijouUtils.SharedRead(templateFile);
 
 		WriteFile(siteFile, template, content);
 	}
@@ -307,7 +307,7 @@ public class Bijou {
 	 * Check to see if itls the seartch file. 
 	 *********************************************/
 	private static void TagSearchFile(string content,string contentFolder, string siteFolder, FileInfo fi) {
-		if (content.Contains("{$search}")) {
+		if (!string.IsNullOrEmpty(content) && content.Contains("{$search}")) {
 			SearchContentFolder = contentFolder;
 			SearchSiteFolder = siteFolder;
 			SearchTemplate = fi.Name;
@@ -392,8 +392,8 @@ public class Bijou {
 		string contentFile = contentFolder + "/" + filename;
 		//string templateFile = BuildTemplateFilename(filename, ext);
 		//string siteFile = siteFolder + "/index.html";
-		//string template = File.ReadAllText(templateFile);
-		string content = File.ReadAllText(contentFile);
+		//string template = BijouUtils.SharedRead(templateFile);
+		string content = BijouUtils.SharedRead(contentFile);
 
 		siteFolder = siteFolder.Replace("."+SiteFolder, WebRoot); 
 		string displayName = siteFolder;
@@ -493,6 +493,9 @@ public class Bijou {
                 	Bijou.Folder = arg;
                 }
             }
+
+			// System.Diagnostics.Debugger.Break();
+
             if (scalfolding) CreateScafolding();
             
 			CreateSite();

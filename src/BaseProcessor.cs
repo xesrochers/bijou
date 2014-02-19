@@ -23,4 +23,11 @@ public class BaseProcessor {
 		return result;
 	}
 
+	public void ReportError(string templateFile, string contentFile, Exception ex) {
+		Console.WriteLine("Unable to apply template to content file", ex);
+		Console.WriteLine(string.Format("Template: {0}",  templateFile));
+		Console.WriteLine(string.Format("Content:  {0}",  contentFile));
+		Console.WriteLine(string.Format("SiteFile: {0}",  SiteFile));
+	}
+
 }
