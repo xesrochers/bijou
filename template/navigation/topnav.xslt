@@ -2,9 +2,19 @@
     <xsl:output method="text" indent="yes" />
 		<xsl:param name="root" />
 		<xsl:param name="index" />
+		<xsl:param name="home" />
 
-    <xsl:template match="/node">
+    <xsl:template match="root">
     	<ul>
+  			<xsl:if test="$home='1'">
+	    		<li>
+	    			<a>
+	    				<xsl:attribute name="href"><xsl:value-of select="$root" />/<xsl:value-of select="$index" /></xsl:attribute>
+	    				<xsl:attribute name="class">icon-home</xsl:attribute>
+	    				<xsl:text disable-output-escaping="yes">&amp;nbsp;</xsl:text>
+	    			</a>
+	    		</li>
+	      </xsl:if>
       	<xsl:apply-templates select="node" />
       </ul>
     </xsl:template>

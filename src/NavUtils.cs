@@ -16,9 +16,7 @@ public class NavUtils  {
 		StringBuilder result = new StringBuilder();
 		BuildTopNavXml(result, contentFolder, "");
 
-		/* for debugging 
-		FileUtils.WriteFile("./site/topnav.xml", result.ToString());
-		*/
+		// FileUtils.WriteFile("topnav.xml", result.ToString()); /* Keep for debugging. */
 
 		return result.ToString();
 	}
@@ -28,8 +26,14 @@ public class NavUtils  {
 		string stripped = BijouUtils.StripPrefix(folder.Name, '.');
 		string displayName = BijouUtils.ParseDisplayName(stripped); 
 		string strippedPath = BijouUtils.StripPrefix(contentFolder + "/" + path);
+		string close = "</node>";
 
-		xml.AppendFormat("<node title='{0}' name='{1}' path='{2}'>", displayName, stripped, strippedPath);
+		if (xml.Length == 0) {
+			xml.Append("<root>");
+			close = "</root>";
+		} else {
+			xml.AppendFormat("<node title='{0}' name='{1}' path='{2}'>", displayName, stripped, strippedPath);
+		}
 
 		foreach(DirectoryInfo di in folder.GetDirectories()) {
 			if (BijouUtils.IsNavigation(di.Name) && !BijouUtils.IsInvisible(di.Name)) {
@@ -47,7 +51,7 @@ public class NavUtils  {
 				}
 			}
 		}
-		xml.Append("</node>");
+		xml.Append(close);
 	}
 
 
@@ -68,9 +72,15 @@ public class NavUtils  {
     	xslArg.AddParam("index", "", "");
     }
 
+    if (Bijou.Home) {
+    	xslArg.AddParam("home", "", "1");
+  	} else {
+    	xslArg.AddParam("home", "", "0");
+  	}
+
     Bijou.Level--;
 
-		return XmlUtils.Transform("etc/topnav.xslt", Bijou.TopNavXml, xslArg);
+		return XmlUtils.Transform("template/navigation/topnav.xslt", Bijou.TopNavXml, xslArg);
     
 	}
 
