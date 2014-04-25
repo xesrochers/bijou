@@ -59,10 +59,13 @@ public class NavUtils  {
     XsltArgumentList xslArg = new XsltArgumentList();
     if (Bijou.Index) {
     	xslArg.AddParam("root", "", root);
+    	xslArg.AddParam("index", "", "index.html");
     } else if (!string.IsNullOrEmpty(Bijou.WebRoot)) {
     	xslArg.AddParam("root", "", Bijou.WebRoot);
+    	xslArg.AddParam("index", "", "");
     } else { 
     	xslArg.AddParam("root", "", "/");
+    	xslArg.AddParam("index", "", "");
     }
 
     Bijou.Level--;
