@@ -41,7 +41,7 @@ public class FileUtils  {
   public static void WriteFile(string filename, string content) {
     using (StreamWriter sw = File.CreateText(filename)) {
           sw.WriteLine(content);
-      }
+    }
   } 
 
   public static void WriteFile(string filename, string template, string content) {

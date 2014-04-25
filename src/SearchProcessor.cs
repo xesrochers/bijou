@@ -29,6 +29,7 @@ public class SearchProcessor : BaseProcessor {
 		try {
 			Template = FileUtils.SharedRead(templateFile);
 			Content = FileUtils.SharedRead(contentFile);
+			
 		} catch (Exception ex) {
 			ReportError(templateFile, contentFile, ex);
 		}

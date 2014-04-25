@@ -107,7 +107,7 @@ public class Bijou {
 
 				File.Copy(contentFile, siteFile, true);
 			}
-	    }
+	  }
 
 		foreach(DirectoryInfo di in folder.GetDirectories()) {
 			string stripped = BijouUtils.StripPrefix(di.Name, '.');
@@ -117,6 +117,7 @@ public class Bijou {
 			FileUtils.CreateFolder(childSite);
 			ProcessFolder(childContent, childSite);
 		}
+		
 		Level--;
 		Path.RemoveAt(Path.Count-1);
 
