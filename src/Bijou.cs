@@ -15,6 +15,7 @@ using System.Collections;
 public class Bijou { 
 	public const string Version = "Version 1.0";
 	public static bool Debug = false;
+	public static bool Clear = false;
 	public static bool Index = false;
 	public static bool Verbose = false;
 	public static bool Watcher = false;
@@ -82,6 +83,11 @@ public class Bijou {
 	private static void ProcessFolder(string contentFolder, string siteFolder) {
 		DirectoryInfo folder = new DirectoryInfo(contentFolder); 
 		Path.Add(siteFolder.Replace("."+SiteFolder, WebRoot));
+
+		if (Bijou.Index) { // Rebuild the TopNav with relative paths
+			Bijou.TopNav = NavUtils.BuildTopNav();
+		}
+
 		Level++;
 		foreach(FileInfo fi in folder.GetFiles("*")) {
 			string templateFile = BaseProcessor.GetTemplateFilename(fi.Name, fi.Extension);
@@ -132,8 +138,6 @@ public class Bijou {
 
 		Bijou.TopNav = NavUtils.BuildTopNav();
 
-		// TopNav = nav.ToString();
-
 		ProcessFolder(Folder+"/content", siteFolder);
 
 		if (SearchProcessor.HasSearchData()) {
@@ -173,6 +177,8 @@ public class Bijou {
 						Bijou.Verbose = true;
 					} else if (arg == "-w") {
 						Bijou.Watcher = true;
+					} else if (arg == "-c") {
+						Bijou.Clear = true;
 					} else if (arg == "-d") {
 						Bijou.Debug = true;
 					} else if (arg == "-i") {
@@ -211,13 +217,19 @@ public class Bijou {
 			//System.Diagnostics.Debugger.Break(); /*DEBUGGER*/
 
 	    if (scalfolding) FileUtils.CreateScafolding(Bijou.Folder);
-	            
-			CreateSite();
 
-			if (Bijou.Watcher) {
-				//Bijou.StartWatcher();
-				Watcher watcher = new Watcher();
-				watcher.Start();
+	    if (Bijou.Clear) {
+	    	string siteFolder = (Bijou.SiteFolder == "/site") ? "site" : Bijou.SiteFolder;
+	    	Console.WriteLine("Starting fresh. Clearing the '{0}' folder.", siteFolder);
+	    	//Directory.Delete(siteFolder, true);
+	    } else {
+				CreateSite();
+
+				if (Bijou.Watcher) {
+					//Bijou.StartWatcher();
+					Watcher watcher = new Watcher();
+					watcher.Start();
+				}
 			}
 
 		} catch (Exception e) {
