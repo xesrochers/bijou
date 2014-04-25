@@ -13,6 +13,7 @@ using System.Collections;
  * </summary>
  *************************************************/
 public class Bijou { 
+	public const string Version = "Version 1.0";
 	public static bool Debug = false;
 	public static bool Index = false;
 	public static bool Verbose = false;
@@ -155,6 +156,7 @@ public class Bijou {
 	}
 
 	public static void CreateSite() {
+		if (Verbose) Console.WriteLine(Version);
 		string siteFolder = (SiteFolder == "/site") ? Folder+"/site" : SiteFolder;
 
 		// CheckExtensions(Folder+"/content");
