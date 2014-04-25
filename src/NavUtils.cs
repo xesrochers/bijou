@@ -12,14 +12,15 @@ using System.Xml.Xsl;
  *************************************************/
 public class NavUtils  { 
 
-	public static void BuildTopNavXml(string contentFolder) {
-		StringBuilder xml = new StringBuilder();
-		BuildTopNavXml(xml, contentFolder, "");
-		Bijou.TopNavXml = xml.ToString();
+	public static string BuildTopNavXml(string contentFolder) {
+		StringBuilder result = new StringBuilder();
+		BuildTopNavXml(result, contentFolder, "");
 
 		/* for debugging 
-		FileUtils.WriteFile("./site/topnav.xml", xml.ToString());
+		FileUtils.WriteFile("./site/topnav.xml", result.ToString());
 		*/
+
+		return result.ToString();
 	}
 
 	private static void BuildTopNavXml(StringBuilder xml, string contentFolder, string path) {
@@ -47,22 +48,33 @@ public class NavUtils  {
 			}
 		}
 		xml.Append("</node>");
-		// return (xml.ToString());
 	}
 
-	public static void BuildTopNav(StringBuilder nav, string contentFolder, string path) {
+
+	public static string BuildTopNav() {
 
 		Bijou.Level++;
 
-		/*string rot = FileUtils.BuildRelativePath(Bijou.Level);
+		string root = FileUtils.BuildRelativePath(Bijou.Level);
     XsltArgumentList xslArg = new XsltArgumentList();
-    xslArg.AddParam("root", "", rot);
+    if (Bijou.Index) {
+    	xslArg.AddParam("root", "", root);
+    } else if (!string.IsNullOrEmpty(Bijou.WebRoot)) {
+    	xslArg.AddParam("root", "", Bijou.WebRoot);
+    } else { 
+    	xslArg.AddParam("root", "", "/");
+    }
 
-		string content = XmlUtils.Transform("etc/topnav.xslt", Bijou.TopNavXml, xslArg);
-    Console.WriteLine(content);
-    */
+    Bijou.Level--;
 
+		return XmlUtils.Transform("etc/topnav.xslt", Bijou.TopNavXml, xslArg);
+    
+	}
 
+	/*
+	public static void BuildTopNav(StringBuilder nav, string contentFolder, string path) {
+
+		Bijou.Level++;
 
 		DirectoryInfo folder = new DirectoryInfo(contentFolder + "/" + path); 
 		nav.Append("<ul>");
@@ -100,7 +112,7 @@ public class NavUtils  {
 		// return (nav.ToString());
 		Bijou.Level--;
 	}
-
+	*/ 
 
 	public static string BuildBreadcrumb() {
 		StringBuilder result = new StringBuilder();

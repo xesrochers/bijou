@@ -128,11 +128,11 @@ public class Bijou {
 
 		FileUtils.CreateFolder(siteFolder);
 
-		NavUtils.BuildTopNavXml(Folder+"/content");
+		Bijou.TopNavXml = NavUtils.BuildTopNavXml(Folder+"/content");
 
-		NavUtils.BuildTopNav(nav, Folder+"/content", "");
+		Bijou.TopNav = NavUtils.BuildTopNav();
 
-		TopNav = nav.ToString();
+		// TopNav = nav.ToString();
 
 		ProcessFolder(Folder+"/content", siteFolder);
 

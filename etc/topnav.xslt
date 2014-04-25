@@ -16,6 +16,7 @@
       					<xsl:value-of select="$root" />
 						    <xsl:value-of select="@path" />
 						  </xsl:attribute>
+      				<xsl:attribute name="data">bogus</xsl:attribute>
       				<xsl:value-of select="@title"/>
       			</a>
       			<xsl:if test="node">
