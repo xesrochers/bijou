@@ -191,7 +191,9 @@ public class Bijou {
 		Console.WriteLine("  -w to start the file system watcher");
 		Console.WriteLine("  -v verbose");
 		Console.WriteLine("  -d debug");
+
 		if (detailed) {
+			Console.WriteLine("Bijou " + Version);
 			Console.WriteLine("Bijou walks through the content folder and creates the html files based on the given template.");
 		}
 	}
