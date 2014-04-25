@@ -41,7 +41,7 @@ public class SubstitutionEngine {
 
 	public static SubstitutionEngine GetSubstitutionEngine(string title, string content) {
 		SubstitutionEngine result = new SubstitutionEngine();
-		Bijou.Breadcrumb = MenuBuilder.BuildBreadcrumb();
+		Bijou.Breadcrumb = NavUtils.BuildBreadcrumb();
 		DateTime now = DateTime.Now;
 		result.Add("content", content);
 		result.Add("title", title);

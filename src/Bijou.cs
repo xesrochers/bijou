@@ -31,21 +31,6 @@ public class Bijou {
 	public static ArrayList Path = new ArrayList();
 	public static int Level = -1;
 
-	public static void CreateFolder(string folder){
-		if(!Directory.Exists(folder)) {
-			if (Verbose) Console.WriteLine("Creating "+folder);			
-			Directory.CreateDirectory(folder);
-		}
-	}
-
-	public static void CreateScafolding(){
-		CreateFolder(Folder+"/content");
-		CreateFolder(Folder+"/template");
-		//CreateFolder(Folder+"/site");
-		/* CreateTemplateHeader();
-		CreateTemplateFooter();
-		CreateTemplateHeader();*/
-	}
 
 	public static string[] ScanTemplateTypes() {
 		ArrayList result = new ArrayList();
@@ -57,31 +42,6 @@ public class Bijou {
 		return (string[]) result.ToArray( typeof( string ) );
 	}
 
-	private static void WriteFile(string filename, string content) {
-		using (StreamWriter sw = File.CreateText(filename)) {
-	        sw.WriteLine(content);
-	    }
-	} 
-
-	private static void WriteFile(string filename, string template, string content) {
-		string title = BijouUtils.ParsePageTitle(filename);
-		using (StreamWriter sw = File.CreateText(filename)) {
-			SubstitutionEngine se = SubstitutionEngine.GetSubstitutionEngine(title, content);
-			if (SearchProcessor.SearchData.Length > 0) {
-				se.Add("search", SearchProcessor.SearchData.ToString());
-			}
-			string text = se.Substitute(template);
-	        sw.WriteLine(text);
-	    }
-	} 
-
-	private static void HtmlClone(string contentFolder, string siteFolder, string filename, string ext, string content) {
-		string templateFile = BaseProcessor.GetTemplateFilename(filename.Replace(ext, ".html"), ".html");
-		string siteFile = siteFolder + "/index.html";
-		string template = BijouUtils.SharedRead(templateFile);
-		WriteFile(siteFile, template, content);
-	}
-
 
 	private static void ApplyTemplate(string contentFolder, string siteFolder, FileInfo fi) {
 		if (Verbose) Console.WriteLine("Processing "+ fi.Extension + " " + fi.Name);
@@ -89,32 +49,32 @@ public class Bijou {
 		if (fi.Extension == ".html") {
 			HtmlProcessor processor = new HtmlProcessor();
 			processor.Consume(contentFolder, siteFolder, fi.Name, fi.Extension);
-			WriteFile(processor.SiteFile, processor.Template, processor.Content);
+			FileUtils.WriteFile(processor.SiteFile, processor.Template, processor.Content);
 			SearchProcessor.TagSearchFile(processor.Content, contentFolder, siteFolder, fi);
 		} else if (fi.Extension == ".xml") {
 			string title = BijouUtils.ParsePageTitle(siteFolder+"/bogus.xxx");
 			XmlProcessor processor = new XmlProcessor();
 			processor.XslArgs = XmlProcessor.BuildXsltArgumentList(title);
 			processor.Consume(contentFolder, siteFolder, fi.Name, fi.Extension);
-			WriteFile(processor.SiteFile, processor.Content);
+			FileUtils.WriteFile(processor.SiteFile, processor.Content);
 		} else if (fi.Extension == ".csv") {
 			CsvProcessor processor = new CsvProcessor();
 			processor.Consume(contentFolder, siteFolder, fi.Name, fi.Extension);
-			WriteFile(processor.SiteFile, processor.Template, processor.Content);
+			FileUtils.WriteFile(processor.SiteFile, processor.Template, processor.Content);
 		} else if (fi.Extension == ".md") {
 			MdProcessor processor = new MdProcessor();
 			processor.Consume(contentFolder, siteFolder, fi.Name, fi.Extension);
-			WriteFile(processor.SiteFile, processor.Template, processor.Content);
+			FileUtils.WriteFile(processor.SiteFile, processor.Template, processor.Content);
 		} else if (fi.Extension == ".rss") {
 			RssProcessor processor = new RssProcessor();
 			processor.Consume(contentFolder, siteFolder, fi.Name, fi.Extension);
-			WriteFile(processor.SiteFile, processor.Template, processor.Content);
-			HtmlClone(contentFolder, siteFolder, fi.Name, fi.Extension, processor.Clone);
+			FileUtils.WriteFile(processor.SiteFile, processor.Template, processor.Content);
+			FileUtils.HtmlClone(contentFolder, siteFolder, fi.Name, fi.Extension, processor.Clone);
 		} else if (fi.Extension == ".ics") {
 			IcsProcessor processor = new IcsProcessor();
 			processor.Consume(contentFolder, siteFolder, fi.Name, fi.Extension);
-			WriteFile(processor.SiteFile, processor.Template, processor.Content);
-			HtmlClone(contentFolder, siteFolder, fi.Name, fi.Extension, processor.Clone);
+			FileUtils.WriteFile(processor.SiteFile, processor.Template, processor.Content);
+			FileUtils.HtmlClone(contentFolder, siteFolder, fi.Name, fi.Extension, processor.Clone);
 		}
 	}
 
@@ -127,7 +87,7 @@ public class Bijou {
 
 			if (!string.IsNullOrEmpty(templateFile)) {
 
-				Children = MenuBuilder.BuildChildLinks(folder);
+				Children = NavUtils.BuildChildLinks(folder);
 				CurrentPageUrl = folder.Name + "/";
 
 				ApplyTemplate(contentFolder, siteFolder, fi);
@@ -147,7 +107,7 @@ public class Bijou {
 			string childContent = contentFolder + "/" + di.Name; 
 			string childSite = siteFolder + "/" + stripped; 
 
-			CreateFolder(childSite);
+			FileUtils.CreateFolder(childSite);
 			ProcessFolder(childContent, childSite);
 		}
 		Level--;
@@ -165,8 +125,11 @@ public class Bijou {
 
 		StringBuilder nav = new StringBuilder();
 
-		CreateFolder(siteFolder);
-		MenuBuilder.BuildTopNav(nav, Folder+"/content", "");
+		FileUtils.CreateFolder(siteFolder);
+
+		NavUtils.BuildTopNavXml(Folder+"/content", FileUtils.AppendFolder(siteFolder,"/etc"));
+
+		NavUtils.BuildTopNav(nav, Folder+"/content", "");
 
 		TopNav = nav.ToString();
 
@@ -175,7 +138,7 @@ public class Bijou {
 		if (SearchProcessor.HasSearchData()) {
 			SearchProcessor processor = new SearchProcessor();
 			processor.Consume();
-			WriteFile(processor.SiteFile, processor.Template, processor.Content);
+			FileUtils.WriteFile(processor.SiteFile, processor.Template, processor.Content);
 		}
 	}
 
@@ -238,15 +201,16 @@ public class Bijou {
 					} else {
 						Console.WriteLine(string.Format("'{0}' option is not supported. Please use -h for help.", args[0] ));
 					}
-                } else {
-                	Bijou.Folder = arg;
-                }
-            }
+        } else {
+        	Bijou.Folder = arg;
+        }
+	    }
 
-			// System.Diagnostics.Debugger.Break();
 
-            if (scalfolding) CreateScafolding();
-            
+			//System.Diagnostics.Debugger.Break(); /*DEBUGGER*/
+
+	    if (scalfolding) FileUtils.CreateScafolding(Bijou.Folder);
+	            
 			CreateSite();
 
 			if (Bijou.Watcher) {
@@ -256,7 +220,7 @@ public class Bijou {
 			}
 
 		} catch (Exception e) {
-		    Console.WriteLine(e.ToString());
-        }
+	    Console.WriteLine(e.ToString());
+    }
 	}
 }

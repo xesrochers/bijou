@@ -4,10 +4,38 @@ using System.Text;
 
 /**************************************************
  * <summary>
- * MenuBuilder
+ * NavUtils
  * </summary>
  *************************************************/
-public class MenuBuilder  { 
+public class NavUtils  { 
+
+	public static void BuildTopNavXml(string contentFolder, string path) {
+		StringBuilder xml = new StringBuilder();
+		BuildTopNavXml(xml, contentFolder, "");
+		FileUtils.CreateFolder(path);
+		FileUtils.WriteFile(FileUtils.AppendFilename(path, "topnav.xml"), xml.ToString());
+	}
+
+	private static void BuildTopNavXml(StringBuilder xml, string contentFolder, string path) {
+		DirectoryInfo folder = new DirectoryInfo(contentFolder + "/" + path); 
+		xml.AppendFormat("<node title='{0}'>", folder.Name);
+
+		foreach(DirectoryInfo di in folder.GetDirectories()) {
+			if (BijouUtils.IsNavigation(di.Name) && !BijouUtils.IsInvisible(di.Name)) {
+				DirectoryInfo children = new DirectoryInfo(contentFolder+"/"+ path + "/" + di.Name);
+				if ((children !=null) && (children.GetDirectories().Length > 0)) {
+					string childPath = path + "/" + di.Name;
+					if (Bijou.Debug) Console.WriteLine("BuildTopNav "+ childPath + " has children");	
+					BuildTopNavXml(xml, contentFolder, childPath);
+				} else {
+					xml.AppendFormat("<node title='{0}' />", di.Name);	
+				}
+			}
+		}
+		xml.Append("</node>");
+		// return (xml.ToString());
+	}
+
 
 	public static void BuildTopNav(StringBuilder nav, string contentFolder, string path) {
 		Bijou.Level++;

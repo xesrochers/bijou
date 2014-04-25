@@ -3,6 +3,7 @@ REM ############################################################################
 REM Author     : Sylvain Desrochers
 REM Description: Builds bijou in the windows world
 REM ################################################################################
+set unix=..\..\slyware\unix\bin
 if "%1"=="" goto usage
 if "%1"=="-bin" goto bin
 if "%1"=="-dbg" goto dbg
@@ -22,13 +23,13 @@ REM ############################################################################
 pushd src
 csc /debug /out:../bin/Bijou.exe *.cs
 popd 
-copy bin\bijou.exe ..\..\sly.ware\unix\bin
+copy bin\bijou.exe %unix%
 goto exit
 
 REM ################################################################################
 :unx
 REM ################################################################################
-copy bin\bijou.exe ..\..\slyware\unix\bin
+copy bin\bijou.exe %unix%
 goto exit
 
 REM ################################################################################
