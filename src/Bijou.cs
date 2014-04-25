@@ -221,7 +221,7 @@ public class Bijou {
 	    if (Bijou.Clear) {
 	    	string siteFolder = (Bijou.SiteFolder == "/site") ? "site" : Bijou.SiteFolder;
 	    	Console.WriteLine("Starting fresh. Clearing the '{0}' folder.", siteFolder);
-	    	//Directory.Delete(siteFolder, true);
+	    	Directory.Delete(siteFolder, true);
 	    } else {
 				CreateSite();
 
