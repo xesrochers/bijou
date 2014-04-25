@@ -17,13 +17,13 @@ public class XmlProcessor : BaseProcessor {
 		SiteFile = siteFolder + "/index.html";
 
 		try {
-			//XsltArgumentList xslArg = BuildXsltArgumentList();
-	        XslCompiledTransform xslt = new XslCompiledTransform();
-	        xslt.Load(templateFile); 
+				//XsltArgumentList xslArg = BuildXsltArgumentList();
+        XslCompiledTransform xslt = new XslCompiledTransform();
+        xslt.Load(templateFile); 
 
-	        using (StringWriter sw = new StringWriter()) {
+        using (StringWriter sw = new StringWriter()) {
 			  using (XmlWriter writer = XmlWriter.Create(sw)) {
-	            xslt.Transform(contentFile, XslArgs, writer);
+	      	xslt.Transform(contentFile, XslArgs, writer);
 			  }
 			  sw.Flush();
 			  Content = sw.ToString();

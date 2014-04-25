@@ -9,23 +9,10 @@ using System.Text;
  *************************************************/
 public class BijouUtils  { 
 
-	public static string BuildRelativePath(int level) {
-		string result = "";
-		if (level > 0){
-			for(int i=0; i<level; i++){
-				if (!string.IsNullOrEmpty(result)) result += "/";
-				result += "..";
-			}
-		} else {
-			result = ".";
-		}
-		return result;
-	}
-
 	public static string BuildRootPath(int level) {
 		string result = string.Empty;
 		if (Bijou.Index) {
-			result = BuildRelativePath(level);
+			result = FileUtils.BuildRelativePath(level);
 		} else {
 			result = Bijou.WebRoot;
 		}
@@ -38,7 +25,7 @@ public class BijouUtils  {
 		string strippedPath = StripPrefix(currentPath);
 
 		if (Bijou.Index) {
-			string root = BuildRelativePath(Bijou.Level);
+			string root = FileUtils.BuildRelativePath(Bijou.Level);
 			stream.AppendFormat("<a href='{0}{1}index.html'>{2}</a>", root, strippedPath, displayName);
 		} else if (Bijou.WebRoot == "") {
 			stream.AppendFormat("<a href='{0}'>{1}</a>", strippedPath, displayName);

@@ -1,6 +1,9 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Xml;
+using System.Xml.Xsl;
+
 
 /**************************************************
  * <summary>
@@ -9,11 +12,14 @@ using System.Text;
  *************************************************/
 public class NavUtils  { 
 
-	public static void BuildTopNavXml(string contentFolder, string path) {
+	public static void BuildTopNavXml(string contentFolder) {
 		StringBuilder xml = new StringBuilder();
 		BuildTopNavXml(xml, contentFolder, "");
-		FileUtils.CreateFolder(path);
-		FileUtils.WriteFile(FileUtils.AppendFilename(path, "topnav.xml"), xml.ToString());
+		Bijou.TopNavXml = xml.ToString();
+
+		/* for debugging 
+		FileUtils.WriteFile("./site/topnav.xml", xml.ToString());
+		*/
 	}
 
 	private static void BuildTopNavXml(StringBuilder xml, string contentFolder, string path) {
@@ -44,9 +50,20 @@ public class NavUtils  {
 		// return (xml.ToString());
 	}
 
-
 	public static void BuildTopNav(StringBuilder nav, string contentFolder, string path) {
+
 		Bijou.Level++;
+
+		/*string rot = FileUtils.BuildRelativePath(Bijou.Level);
+    XsltArgumentList xslArg = new XsltArgumentList();
+    xslArg.AddParam("root", "", rot);
+
+		string content = XmlUtils.Transform("etc/topnav.xslt", Bijou.TopNavXml, xslArg);
+    Console.WriteLine(content);
+    */
+
+
+
 		DirectoryInfo folder = new DirectoryInfo(contentFolder + "/" + path); 
 		nav.Append("<ul>");
 		if (Bijou.Level==0 && Bijou.Home) {

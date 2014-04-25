@@ -36,7 +36,7 @@ public class FileUtils  {
     }
     return result;
   }
-  
+
 
   public static void WriteFile(string filename, string content) {
     using (StreamWriter sw = File.CreateText(filename)) {
@@ -78,4 +78,18 @@ public class FileUtils  {
     }
     return result;
   }
+
+  public static string BuildRelativePath(int level) {
+    string result = "";
+    if (level > 0){
+      for(int i=0; i<level; i++){
+        if (!string.IsNullOrEmpty(result)) result += "/";
+        result += "..";
+      }
+    } else {
+      result = ".";
+    }
+    return result;
+  }
+  
 }

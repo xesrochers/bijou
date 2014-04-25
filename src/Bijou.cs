@@ -22,6 +22,7 @@ public class Bijou {
 	// public static bool HasSearch = false;
 	public static string Folder = ".";
 	public static string TopNav = "";
+	public static string TopNavXml = "";
 	public static string Breadcrumb = "";
 	public static string SiteFolder = "/site";
 	public static string WebRoot = "";
@@ -127,7 +128,7 @@ public class Bijou {
 
 		FileUtils.CreateFolder(siteFolder);
 
-		NavUtils.BuildTopNavXml(Folder+"/content", FileUtils.AppendFolder(siteFolder,"/etc"));
+		NavUtils.BuildTopNavXml(Folder+"/content");
 
 		NavUtils.BuildTopNav(nav, Folder+"/content", "");
 
