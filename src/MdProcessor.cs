@@ -99,8 +99,8 @@ public class MdProcessor : BaseProcessor {
 		SiteFile = siteFolder + "/index.html";
 
 		try {
-			Template = BijouUtils.SharedRead(templateFile);
-			Content = ""; //BijouUtils.SharedRead(contentFile);
+			Template = FileUtils.SharedRead(templateFile);
+			Content = ""; //FileUtils.SharedRead(contentFile);
 
 		    StringBuilder sb = new StringBuilder();
 			using (StreamReader sr = new StreamReader(contentFile)) {

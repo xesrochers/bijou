@@ -15,7 +15,7 @@ public class CsvProcessor : BaseProcessor {
 		string templateFile = GetTemplateFilename(filename, ext);
 		SiteFile = siteFolder + "/index.html";
 		try {
-			Template = BijouUtils.SharedRead(templateFile);
+			Template = FileUtils.SharedRead(templateFile);
 		    StringBuilder sb = new StringBuilder();
 			using (StreamReader sr = new StreamReader(contentFile)) {
 			    string line;

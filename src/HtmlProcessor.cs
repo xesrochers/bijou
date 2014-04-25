@@ -13,8 +13,8 @@ public class HtmlProcessor : BaseProcessor {
 		string templateFile = GetTemplateFilename(filename, ext);
 		SiteFile = siteFolder + "/index.html";
 		try {
-			Template = BijouUtils.SharedRead(templateFile);
-			Content = BijouUtils.SharedRead(contentFile);
+			Template = FileUtils.SharedRead(templateFile);
+			Content = FileUtils.SharedRead(contentFile);
 		} catch (Exception ex) {
 			ReportError(templateFile, contentFile, ex);
 		}

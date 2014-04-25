@@ -27,8 +27,8 @@ public class SearchProcessor : BaseProcessor {
 		string templateFile = GetTemplateFilename(filename, ext);
 		SiteFile = siteFolder + "/index.html";
 		try {
-			Template = BijouUtils.SharedRead(templateFile);
-			Content = BijouUtils.SharedRead(contentFile);
+			Template = FileUtils.SharedRead(templateFile);
+			Content = FileUtils.SharedRead(contentFile);
 		} catch (Exception ex) {
 			ReportError(templateFile, contentFile, ex);
 		}
@@ -54,8 +54,8 @@ public class SearchProcessor : BaseProcessor {
 		string contentFile = contentFolder + "/" + filename;
 		//string templateFile = BuildTemplateFilename(filename, ext);
 		//string siteFile = siteFolder + "/index.html";
-		//string template = BijouUtils.SharedRead(templateFile);
-		string content = BijouUtils.SharedRead(contentFile);
+		//string template = FileUtils.SharedRead(templateFile);
+		string content = FileUtils.SharedRead(contentFile);
 
 		siteFolder = siteFolder.Replace("."+Bijou.SiteFolder, Bijou.WebRoot); 
 		string displayName = siteFolder;

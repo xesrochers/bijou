@@ -18,7 +18,11 @@ public class NavUtils  {
 
 	private static void BuildTopNavXml(StringBuilder xml, string contentFolder, string path) {
 		DirectoryInfo folder = new DirectoryInfo(contentFolder + "/" + path); 
-		xml.AppendFormat("<node title='{0}'>", folder.Name);
+		string stripped = BijouUtils.StripPrefix(folder.Name, '.');
+		string displayName = BijouUtils.ParseDisplayName(stripped); 
+		string strippedPath = BijouUtils.StripPrefix(contentFolder + "/" + path);
+
+		xml.AppendFormat("<node title='{0}' name='{1}' path='{2}'>", displayName, stripped, strippedPath);
 
 		foreach(DirectoryInfo di in folder.GetDirectories()) {
 			if (BijouUtils.IsNavigation(di.Name) && !BijouUtils.IsInvisible(di.Name)) {
@@ -28,7 +32,11 @@ public class NavUtils  {
 					if (Bijou.Debug) Console.WriteLine("BuildTopNav "+ childPath + " has children");	
 					BuildTopNavXml(xml, contentFolder, childPath);
 				} else {
-					xml.AppendFormat("<node title='{0}' />", di.Name);	
+					string childPath = path + "/" + di.Name;
+					string diStripped = BijouUtils.StripPrefix(di.Name, '.');
+					string diDisplayName = BijouUtils.ParseDisplayName(diStripped); 
+					string diStrippedPath = BijouUtils.StripPrefix(childPath);
+					xml.AppendFormat("<node title='{0}' name='{1}' path='{2}' />", diDisplayName, diStripped, diStrippedPath);
 				}
 			}
 		}

@@ -25,6 +25,19 @@ public class FileUtils  {
     CreateTemplateHeader();*/
   }
 
+
+  public static string SharedRead(string filename) {
+    string result = "";
+    using (var fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
+      using (var textReader = new StreamReader(fileStream)) {
+          result = textReader.ReadToEnd();
+      }
+      fileStream.Close();
+    }
+    return result;
+  }
+  
+
   public static void WriteFile(string filename, string content) {
     using (StreamWriter sw = File.CreateText(filename)) {
           sw.WriteLine(content);
@@ -46,7 +59,7 @@ public class FileUtils  {
   public static void HtmlClone(string contentFolder, string siteFolder, string filename, string ext, string content) {
     string templateFile = BaseProcessor.GetTemplateFilename(filename.Replace(ext, ".html"), ".html");
     string siteFile = siteFolder + "/index.html";
-    string template = BijouUtils.SharedRead(templateFile);
+    string template = FileUtils.SharedRead(templateFile);
     WriteFile(siteFile, template, content);
   }
 

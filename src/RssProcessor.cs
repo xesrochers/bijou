@@ -22,7 +22,7 @@ public class RssProcessor : BaseProcessor {
 		SiteFile = siteFolder + "/index.rss";
 
 		try {
-			Template = BijouUtils.SharedRead(templateFile);
+			Template = FileUtils.SharedRead(templateFile);
 		    StringBuilder rss = new StringBuilder();
 		    StringBuilder htm = new StringBuilder();
 		    //StringBuilder js = new StringBuilder();

@@ -37,7 +37,7 @@ public class IcsProcessor : BaseProcessor {
 		SiteFile = siteFolder + "/index.ics";
 
 		try {
-			Template = BijouUtils.SharedRead(templateFile);
+			Template = FileUtils.SharedRead(templateFile);
 		    StringBuilder ics = new StringBuilder();
 		    StringBuilder htm = new StringBuilder();
 			using (StreamReader sr = new StreamReader(contentFile)) {
