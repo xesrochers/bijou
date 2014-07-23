@@ -60,25 +60,25 @@ public class NavUtils  {
 		Bijou.Level++;
 
 		string root = FileUtils.BuildRelativePath(Bijou.Level);
-    XsltArgumentList xslArg = new XsltArgumentList();
-    if (Bijou.Index) {
-    	xslArg.AddParam("root", "", root);
-    	xslArg.AddParam("index", "", "index.html");
-    } else if (!string.IsNullOrEmpty(Bijou.WebRoot)) {
-    	xslArg.AddParam("root", "", Bijou.WebRoot);
-    	xslArg.AddParam("index", "", "");
-    } else { 
-    	xslArg.AddParam("root", "", "/");
-    	xslArg.AddParam("index", "", "");
-    }
+	    XsltArgumentList xslArg = new XsltArgumentList();
+	    if (Bijou.Index) {
+	    	xslArg.AddParam("root", "", root);
+	    	xslArg.AddParam("index", "", "index.html");
+	    } else if (!string.IsNullOrEmpty(Bijou.WebRoot)) {
+	    	xslArg.AddParam("root", "", Bijou.WebRoot);
+	    	xslArg.AddParam("index", "", "");
+	    } else { 
+	    	xslArg.AddParam("root", "", "");
+	    	xslArg.AddParam("index", "", "");
+	    }
 
-    if (Bijou.Home) {
-    	xslArg.AddParam("home", "", "1");
-  	} else {
-    	xslArg.AddParam("home", "", "0");
-  	}
+	    if (Bijou.Home) {
+	    	xslArg.AddParam("home", "", "1");
+	  	} else {
+	    	xslArg.AddParam("home", "", "0");
+	  	}
 
-    Bijou.Level--;
+	    Bijou.Level--;
 
 		return XmlUtils.Transform("template/navigation/topnav.xslt", Bijou.TopNavXml, xslArg);
     

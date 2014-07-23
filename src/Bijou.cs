@@ -131,7 +131,7 @@ public class Bijou {
 
 		TemplateTypes = ScanTemplateTypes();
 
-		StringBuilder nav = new StringBuilder();
+		// StringBuilder nav = new StringBuilder();
 
 		FileUtils.CreateFolder(siteFolder);
 
@@ -215,7 +215,7 @@ public class Bijou {
 	    }
 
 
-			//System.Diagnostics.Debugger.Break(); /*DEBUGGER*/
+		//System.Diagnostics.Debugger.Break(); /*DEBUGGER*/
 
 	    if (scalfolding) FileUtils.CreateScafolding(Bijou.Folder);
 
